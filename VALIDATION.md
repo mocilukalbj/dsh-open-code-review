@@ -5,6 +5,10 @@ pnpm 11.7.0, Git 2.55.0, DeepSeek Harness 0.1.7-rc.2, OCR 1.12.10.
 
 ## Passed
 
+- GitHub Actions passed all check, unit, integration and packing steps on
+  `ubuntu-latest`, `macos-latest`, and `windows-latest`:
+  https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36435343884
+  (runtime/test revision `24bd96213ca9dbc7f50748a88354a5466b96754e`).
 - `npm run check`: syntax, bundle manifest, shipped files, pinned OCR dependency.
 - `npm test`: 14 tests covering literal argv, scope validation, session workspace,
   JSON validation, sandbox/approval failures, truncated output, nonzero exit,
@@ -35,7 +39,8 @@ SHA-256: `a2650419ac5951943caa4756a080ca0ff087e0516c4f20c0ee463a2e9185ce37`
 
 ## Limits
 
-- macOS/Windows CI jobs are supplied but have not been run in this local session.
+- Cross-platform results are from hosted CI; the full DSH CLI installation and
+  removal smoke test was run locally on Linux.
 - No live LLM request was made. Optional OCR-managed API connectivity, review
   quality and model-specific behavior have not been validated.
 - Rule configuration comes from the current checkout, even when reviewing a

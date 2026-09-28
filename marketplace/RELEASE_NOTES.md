@@ -11,10 +11,11 @@ Connect Alibaba Open Code Review to DeepSeek Harness through a native plugin bun
 - Uses the session workspace, host sandbox/approval and managed subprocesses;
   cancellation, timeouts and unload terminate the active subprocess range.
 
-Tested on Linux x64 with DSH 0.1.7-rc.2 and Node.js 22.23.1. All 14 unit tests,
-3 real-service integration tests and production archive installation / invocation /
-removal passed. Live LLM provider behavior and macOS/Windows have not been tested
-in this local validation session. DSH 0.2 is not currently supported.
+All 14 unit tests and 3 real-service integration tests passed on Linux, macOS,
+and Windows in [GitHub Actions](https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36435343884).
+Production archive installation, actual tool calls and removal also passed locally
+on Linux x64 with DSH 0.1.7-rc.2 and Node.js 22.23.1. Live LLM provider behavior has
+not been tested. DSH 0.2 is not currently supported.
 
 Install the attached package into your actual profile:
 
