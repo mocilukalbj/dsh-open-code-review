@@ -74,6 +74,8 @@ Agent 会按 `(路径, 状态)` 维护完整清单，最终给出问题证据、
 
 ## 更新、卸载与验证
 
+OCR 升级、DSH 兼容性、接入方式迁移、发布和回滚流程见 [更新维护说明](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md)。
+
 市场收录后，dsh-market 可以统一管理插件版本；插件更新会一起更新其固定的 OCR 依赖，不会更新另外安装的全局 OCR。收录前，可安装新版 tarball 更新。
 
 ```sh

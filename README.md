@@ -80,6 +80,9 @@ All tools run through DSH's managed subprocess service and resolved per-session 
 
 ## Update and remove
 
+See the [upgrade and compatibility guide (中文)](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md) for OCR updates,
+DSH API migrations, integration alternatives, release checks and rollback.
+
 dsh-market can manage the bundle after catalog acceptance. Its updates update this adapter and its pinned OCR dependency together; a separately installed global OCR is not updated by this plugin. Before listing, install a newer release tarball with `dsh plugin --profile web add <tarball>`.
 
 ```sh
