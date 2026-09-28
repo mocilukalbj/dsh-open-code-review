@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, mkdir, rm, readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { Context } from '@deepseek-ai/cordis';
 import Loader from '@deepseek-ai/cordis-plugin-loader';
@@ -24,7 +24,8 @@ async function load(config = {}) {
   rows.push(...bundle[0].insert.map(row => ({ ...row, config })));
   for (const row of rows) {
     // Resolve the actual package entry; the row itself comes from the shipped bundle.
-    row.name = row.name === 'dsh-open-code-review' ? path.join(root, 'lib/index.js') : require.resolve(row.name);
+    const entryPath = row.name === 'dsh-open-code-review' ? path.join(root, 'lib/index.js') : require.resolve(row.name);
+    row.name = pathToFileURL(entryPath).href;
   }
   await ctx.loader.root.update(rows);
   await ctx.loader.await();
