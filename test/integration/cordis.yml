@@ -1,0 +1,16 @@
+- id: system-prompt
+  name: '@deepseek-ai/dsh-system-prompt'
+- id: tools
+  name: '@deepseek-ai/dsh-tools'
+- id: skills
+  name: '@deepseek-ai/dsh-skill'
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+- id: session-projections
+  name: '@deepseek-ai/dsh-session-projection'
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: read-only
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'

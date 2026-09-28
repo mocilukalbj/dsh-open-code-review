@@ -1,0 +1,15 @@
+Open Code Review for DeepSeek Harness
+Community adapter, 2026.
+
+This project consumes @alibaba-group/open-code-review 1.12.10 from its original publisher.
+Upstream: https://github.com/alibaba/open-code-review
+Copyright 2026 Alibaba / alibaba/open-code-review Contributors.
+License: Apache License, Version 2.0.
+
+The bundled DSH review skill adapts the upstream open-code-review-delegate workflow
+for native DSH tools, session workspaces and host sandbox approvals.
+It has been modified for this project; it is not the unmodified upstream skill.
+Upstream source consulted: ebb69835a3a2d25468b6a68ba6092b9b8fe6bcb0.
+
+DeepSeek Harness runtime packages are used under their respective upstream licenses.
+This adapter is not an official Alibaba or DeepSeek product.
