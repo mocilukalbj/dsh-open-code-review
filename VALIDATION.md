@@ -33,6 +33,15 @@ at **1.12.10**; the execution implementation and skill are unchanged.
   isolated `DSH_HOME`. A full base-profile startup registered both tools and
   the callable skill. Actual native OCR preview/rules calls passed under the
   read-only sandbox; unloading removed both tools and the skill.
+- An independent local 0.1.7-rc.2 test checkout also passed checks and all
+  17 tests, including the actual read-only sandbox and active-process unload.
+- After publication, the versioned GitHub asset was downloaded and its hash
+  matched. The actual local web profile was upgraded to 0.1.1 and enabled via
+  DSH's plugin manager. The running 0.2.0-rc.2 host reported installed/enabled,
+  no error, and an active plugin fiber. Other plugin specs and bundle selections
+  were preserved; the service applied the change live without restart.
+- CLI removal from the isolated profile succeeded and removed the dependency,
+  package entry and composed bundle rows.
 - Production archive SHA-256:
   `7a1d1b152421e46c41de1fbc08801336e99e785814c7b96a8259f4e269f793d3`.
   This is the exact archive used in the full CLI smoke test.

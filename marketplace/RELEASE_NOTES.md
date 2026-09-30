@@ -10,8 +10,8 @@ the native tools, skill, sandbox and managed-process integration are retained.
 - OCR stays pinned at **1.12.10**; no separate key is needed in default mode.
 - Development dependencies now target 0.2.0-rc.2. CI covers both hosts across
   Linux, macOS and Windows, with actual dependency-version assertions.
-- Upgrade/API migration details: [UPGRADE.zh.md](../UPGRADE.zh.md).
-- Validation and its limits: [VALIDATION.md](../VALIDATION.md).
+- Upgrade/API migration details: [UPGRADE.zh.md](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md).
+- Validation and its limits: [VALIDATION.md](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/VALIDATION.md).
 
 Install the new pinned release into your actual profile:
 
