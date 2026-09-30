@@ -16,6 +16,12 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 
 async function load(config = {}) {
+  if (process.env.DSH_TEST_VERSION) {
+    for (const service of ['tools', 'skill', 'subprocess', 'sandbox', 'sandbox-policy']) {
+      const actual = require(`@deepseek-ai/dsh-${service}/package.json`).version;
+      assert.equal(actual, process.env.DSH_TEST_VERSION, `integration must use the selected DSH ${service} version`);
+    }
+  }
   const ctx = new Context();
   const loaderFiber = ctx.plugin(Loader);
   await loaderFiber.await();

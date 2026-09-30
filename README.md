@@ -8,7 +8,7 @@ This is a community adapter, not an Alibaba or DeepSeek official plugin. Delegat
 
 ## Requirements
 
-- DeepSeek Harness **0.1.7-rc.2** (the tested host API; 0.2 is not yet supported).
+- DeepSeek Harness **0.1.7-rc.2 or 0.2.0-rc.2**. Plugin **0.1.1** fixes the old release's version admission failure on 0.2.0-rc.2; other host versions require verification.
 - Node.js 22+, Git 2.41+ and a local Git workspace.
 - Standard DSH services: tools, skills, subprocess, sandboxPolicy and sandbox. The shipped base/web profiles provide these; custom compositions must include them, plus the skill consumer (`@deepseek-ai/dsh-tool-skill`) to advertise/invoke the skill.
 - OCR **1.12.10** is a pinned runtime dependency. Its optional native packages support Linux, macOS and Windows, x64/arm64. Keep optional dependencies enabled. This adapter has no build/install scripts and does not install or update anything during a review.

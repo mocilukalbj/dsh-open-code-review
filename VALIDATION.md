@@ -1,4 +1,40 @@
-# Validation — 0.1.0
+# Validation — 0.1.1
+
+Compatibility update on 2026-09-30 for DeepSeek Harness **0.2.0-rc.2**,
+with **0.1.7-rc.2** retained as an explicitly supported host. OCR stays pinned
+at **1.12.10**; the execution implementation and skill are unchanged.
+
+## Compatibility findings
+
+- The running local web profile and CLI both use 0.2.0-rc.2. The original
+  0.1.0 bundle was installed but disabled with `incompatible-version` because
+  five DSH service peers accepted only 0.1.7-rc.2.
+- The shipped `lib` trees of tools, skill, subprocess, sandbox and sandbox-policy
+  are byte-for-byte identical between these two kernels. Cordis 4.0.4 and
+  Schemastery 3.18.4 are also unchanged. Native bundle + tools + skill remains
+  the supported integration; no version exemption or sandbox bypass is needed.
+- Calling the new host's `evaluatePluginCompatibility` rejects the old peers
+  and accepts `0.1.7-rc.2 || 0.2.0-rc.2`. The manifest now uses that explicit
+  range for DSH peers and engines. Development dependencies and the lockfile
+  use 0.2.0-rc.2.
+
+## Verification
+
+- Local Linux x64, Node 22.23.1: syntax/package checks, all 14 unit tests and
+  all 3 real-service integration tests passed using 0.2.0-rc.2 services.
+  These include real native OCR workspace/range/commit/rules calls, read-only
+  sandboxing, optional tool registration, and cancellation/join on unload.
+- CI now covers both declared DSH versions on Linux, macOS and Windows.
+  Integration tests assert the actual installed host-service versions.
+  The six-job run and full CLI smoke result will be recorded before release.
+
+The prior 0.1.0 evidence below remains a historical baseline. Live LLM requests,
+model review quality, other DSH versions and remote execution are outside this
+compatibility check.
+
+---
+
+## Historical validation — 0.1.0
 
 Validated locally on 2026-09-28, Linux x64, Node.js 22.23.1, npm 10.9.8,
 pnpm 11.7.0, Git 2.55.0, DeepSeek Harness 0.1.7-rc.2, OCR 1.12.10.

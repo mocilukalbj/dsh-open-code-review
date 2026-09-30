@@ -1,30 +1,27 @@
-# DSH Open Code Review 0.1.0
+# DSH Open Code Review 0.1.1
 
-Connect Alibaba Open Code Review to DeepSeek Harness through a native plugin bundle.
+Fix loading on DeepSeek Harness **0.2.0-rc.2**: the old bundle was rejected
+because its DSH service peers accepted only 0.1.7-rc.2. The new manifest explicitly
+supports **0.1.7-rc.2 or 0.2.0-rc.2**. The required host APIs are unchanged;
+the native tools, skill, sandbox and managed-process integration are retained.
 
-- Use `/open-code-review` to review workspace changes, a branch range, or one commit.
-- Default tools `ocr_preview` and `ocr_rules` use OCR to select files and resolve
-  rules, then the current DSH model reviews the code. No extra OCR API key.
-- Optional `ocr_review` / `ocr_llm_test` use OCR's separately configured model.
-- Pinned official OCR 1.12.10 native dependency, installed through the package
-  manager without a plugin build script or runtime update/download command.
-- Uses the session workspace, host sandbox/approval and managed subprocesses;
-  cancellation, timeouts and unload terminate the active subprocess range.
+- Default `ocr_preview` / `ocr_rules` and `/open-code-review` use the current
+  DSH model. Optional full OCR-managed mode remains opt-in.
+- OCR stays pinned at **1.12.10**; no separate key is needed in default mode.
+- Development dependencies now target 0.2.0-rc.2. CI covers both hosts across
+  Linux, macOS and Windows, with actual dependency-version assertions.
+- Upgrade/API migration details: [UPGRADE.zh.md](../UPGRADE.zh.md).
+- Validation and its limits: [VALIDATION.md](../VALIDATION.md).
 
-All 14 unit tests and 3 real-service integration tests passed on Linux, macOS,
-and Windows in [GitHub Actions](https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36435343884).
-Production archive installation, actual tool calls and removal also passed locally
-on Linux x64 with DSH 0.1.7-rc.2 and Node.js 22.23.1. Live LLM provider behavior has
-not been tested. DSH 0.2 is not currently supported.
-
-Install the attached package into your actual profile:
+Install the new pinned release into your actual profile:
 
 ```sh
-dsh plugin --profile web add /path/to/dsh-open-code-review.tgz
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.1/dsh-open-code-review.tgz --ignore-scripts
 ```
 
-Reload/restart as prompted, then invoke `/open-code-review` in a conversation.
-The tarball requires the package manager to download its pinned native dependency.
+Reload as prompted and start a new conversation if needed. Optional native
+OCR dependencies must remain enabled. Historical v0.1.0 assets are preserved.
 
-This is a community adapter, not an official Alibaba or DeepSeek plugin. Market
-listing is subject to catalog review; publication alone does not establish listing.
+This is a community adapter. Market listing remains subject to catalog review;
+GitHub publication alone does not establish listing. No live LLM provider request
+was made during the compatibility checks.

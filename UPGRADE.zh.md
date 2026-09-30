@@ -1,16 +1,16 @@
 # 更新、兼容与 DSH 接入维护说明
 
 适用项目：[`dsh-open-code-review`](https://github.com/mocilukalbj/dsh-open-code-review)。
-记录日期：2026-09-28。本说明区分**已经验证的行为**和**未来版本的适配方案**；不承诺未经测试的新版本兼容。
+记录日期：2026-09-30。本说明区分**已经验证的行为**和**未来版本的适配方案**；不承诺未经测试的新版本兼容。
 
 ## 1. 当前版本基线
 
 | 层 | 当前基线 | 更新关系 |
 | --- | --- | --- |
-| 本插件 | `0.1.0` | GitHub Release 分发原生 DSH bundle，未发布 npm 包。 |
+| 本插件 | `0.1.1` | GitHub Release 分发原生 DSH bundle，未发布 npm 包。 |
 | Open Code Review | `@alibaba-group/open-code-review@1.12.10` | 精确固定的运行依赖，随插件版本升级。 |
 | OCR 委托协议 | `schema_version: "1"` | `delegate preview` / `delegate rule` 的 JSON 契约。 |
-| DSH | `0.1.7-rc.2` | 本插件声明的 DSH 服务 peer 版本均精确匹配此版本。 |
+| DSH | `0.1.7-rc.2` / `0.2.0-rc.2` | DSH 服务 peers 明确声明两个已验证版本的 `||` 分支。 |
 | Node.js | 22+ | 已验证 Node 22；其他主版本仍需验证。 |
 | 接入方式 | 本地 Host Cordis bundle + 原生工具 + Skill | 使用当前会话模型完成默认审查。 |
 
@@ -59,10 +59,10 @@ CLI、桌面应用和系统服务可能使用不同的内核、`DSH_HOME` 或 pr
 
 ### 安装指定的新 Release
 
-从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 选择已经发布、兼容当前 DSH 的版本。下面以**确实存在的 v0.1.0** 展示命令格式；升级时替换为实际目标 tag：
+从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **v0.1.1**；以后升级时替换为实际目标 tag：
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.0/dsh-open-code-review.tgz --ignore-scripts
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.1/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 正式升级推荐带版本的 URL。`releases/latest/download/dsh-open-code-review.tgz` 便于首次安装和市场展示，但固定 URL 的缓存及解析行为不适合作为“这次一定更新了”的证据。安装后核对插件版本、OCR 依赖版本及运行状态。
@@ -110,7 +110,7 @@ dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review
 
 上游：[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)、[插件开发文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/index.md)。
 
-**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 精确为 `0.1.7-rc.2`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
+**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 为 `0.1.7-rc.2 || 0.2.0-rc.2`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
 
 | 接口边界 | 必须验证的契约 |
 | --- | --- |
@@ -132,7 +132,17 @@ dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review
 5. 按上表调整代码和必要的测试，再做完整 Host 启动、会话可见性、预览/规则、取消、超时、卸载、沙箱拒绝和旧版本回归验证。
 6. 只把实际验证过的组合写入兼容表并发布新插件。跨 DSH 大版本的破坏性适配，应保留旧版本可安装，而不是覆盖原 Release 资产。
 
-当前未验证 DSH `0.2`。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
+插件 `0.1.1` 已针对 DSH `0.2.0-rc.2` 适配，保留 `0.1.7-rc.2` 支持；不承诺整个 `0.2` 系列自动兼容。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
+
+### 0.2.0-rc.2 兼容更新记录（2026-09-30）
+
+- 实际 web 内核与 CLI 均为 `0.2.0-rc.2`。旧插件 `0.1.0` 在运行中返回 `incompatible-version`，五项 DSH 服务 peer 仅允许 `0.1.7-rc.2`，因此未加载。
+- 核对目标内核发布产物后，`dsh-tools`、`dsh-skill`、`dsh-subprocess`、`dsh-sandbox`、`dsh-sandbox-policy` 的 `lib` 与旧内核完全一致；Cordis `4.0.4`、Schemastery `3.18.4` 保持一致。本次保留原生 bundle + tools + Skill 接入及执行实现。
+- `0.1.1` 将 DSH peers 和 `engines.dsh` 改为明确的双版本 `||` 声明，将默认开发依赖与锁文件更新到 `0.2.0-rc.2`，OCR 仍固定为 `1.12.10`。
+- CI 增加两个 DSH 内核 × Linux / macOS / Windows 的六种组合。集成测试校验实际加载的服务版本，防止只修改测试标签却仍测到旧依赖。
+- DSH 的版本 guard 根据 `@deepseek-ai/dsh-*` peers 判断准入；`optional` 或只放宽 `engines.dsh` 不会解决拒绝加载。本次不需要版本豁免。
+
+验证结果与范围见 [VALIDATION.md](VALIDATION.md)。旧 `v0.1.0` 仅用于匹配的旧内核；`0.2.0-rc.2` 应安装 `v0.1.1` 或后续明确支持该内核的版本。
 
 ## 6. 如果 DSH 的接入方式发生变化
 
@@ -172,7 +182,7 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 5. URL、仓库、分类或功能描述发生变化时，向 [awesome-dsh-plugin 目录](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 更新本插件对应的一份 YAML；不手改其生成的 README。dsh-market 是展示/管理入口，目录合并与插件发布是不同步骤。
 6. 核对市场实际刷新和安装结果；不会因为创建了 Release 就保证目录已收录或所有本机安装已自动更新。
 
-只补充本文等仓库文档，不改变运行代码和安装包时，可直接提交文档，不必覆盖已有 Release。本文件当前从 GitHub 仓库阅读；`v0.1.0` 已发布的安装包不会因此改变。
+只补充本文等仓库文档，不改变运行代码和安装包时，可直接提交文档，不必覆盖已有 Release。本文件从 GitHub 仓库阅读；历史 Release 安装包不会因仓库文档更新而改变。
 
 ## 8. 回滚与常见问题
 
