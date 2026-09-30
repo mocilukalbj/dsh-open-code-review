@@ -69,6 +69,31 @@ at **1.12.10**; the execution implementation and skill are unchanged.
   skip install scripts and keep optional dependencies enabled. No global
   build approval or release-age policy was disabled.
 
+## GitHub Release to npm automation — 2026-09-30
+
+- Workflow and release verifier revision:
+  `c5ff8e9c40988be64a26b65793299d5682ead65e`. `actionlint` 1.7.12 passed.
+- Local package checks, 20 unit assertions/tests (including the 6 new release
+  gate tests) and 3 real-service integration tests passed. The gate checks
+  tag/manifest/lock versions, SHA-256, complete production file contents,
+  unsafe archive entries, and npm identity conflicts.
+- All six main-branch CI jobs passed on both declared DSH versions and all
+  three platforms:
+  https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36695941280.
+- A real `workflow_dispatch` for the existing `v0.1.1` Release with
+  `publish: false` passed asset/source/registry verification and all six host
+  test jobs:
+  https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36695968737.
+  The verification artifact reports `existing-identical`, with the production
+  SHA-256 recorded above. Publishing was correctly skipped.
+- The workflow publishes the original verified GitHub archive using OIDC,
+  with stable versions on `latest` and prereleases on `next`. npm Trusted
+  Publisher authorization requires the package owner's interactive 2FA.
+  This verification-only run did not exercise a new-version OIDC publication;
+  that check will occur with the next new Release after authorization.
+- No runtime/dependency version changed; the existing npm and GitHub 0.1.1
+  archives were preserved.
+
 The prior 0.1.0 evidence below remains a historical baseline. Live LLM requests,
 model review quality, other DSH versions and remote execution are outside this
 compatibility check.
