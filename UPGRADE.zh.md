@@ -73,6 +73,33 @@ dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review
 
 验证：插件处于启用且 active 状态；新会话能加载 `/open-code-review`；对小型临时 Git 仓库调用预览和规则，结果范围正确。已有自定义 preset 若隐藏工具，需要在该 preset 的正常配置入口中调整可见性。
 
+### npm 404 与安装来源（2026-09-30）
+
+GitHub Release 发布和 npm 发布是两个独立动作。当前 `v0.1.1` 已发布 GitHub 安装包；截至本节记录时，同名 npm 包还未发布。因此 `npm view dsh-open-code-review`、按包名安装或某些界面的按包名更新会返回 `E404`，这不代表 GitHub 安装包失效。
+
+已核对的 dsh-market `1.66.6` 会把 Release tarball 安装归入 npm 更新检查，并以 `dsh-open-code-review@latest` 作为更新目标。市场目录中的 `tarball` 提供安装地址，不是一个让所有客户端都按 Release 跟踪版本的更新协议。其 update API 也复用同一更新流程。
+
+同名包发布到 npm 前，更新请使用本节前面的**目标 Release 带 tag URL**执行 `dsh plugin --profile web add ...`。不要仅运行 `npm update dsh-open-code-review`，也不要因这个 404 重装 OCR 或修改沙箱配置。
+
+维护者首次发布 npm 的步骤：
+
+1. 在 npm 创建/使用自己的发布账号，在本机运行 `npm login --registry=https://registry.npmjs.org`。GitHub 登录不会自动授予 npm 发布身份；凭据留在本机。
+2. 使用已经测试、发布并校验 SHA-256 的同一份 Release tarball，先运行发布预检，再正式发布，例如：
+
+   ```sh
+   npm publish /绝对路径/dsh-open-code-review.tgz --dry-run --ignore-scripts --access public --registry=https://registry.npmjs.org
+   npm publish /绝对路径/dsh-open-code-review.tgz --ignore-scripts --access public --registry=https://registry.npmjs.org
+   ```
+
+   npm 的首次发布可能要求账号 2FA / 浏览器验证，按官方提示完成；不要把密码、OTP 或 Token 写入仓库。
+3. 核对 `npm view dsh-open-code-review@0.1.1 version dist.integrity --registry=https://registry.npmjs.org`，实际下载安装并校验包版本、入口、OCR 依赖及 Host 兼容性。
+4. 若要使用 npm 作为后续更新来源，可在自己的实际 profile 中安装 `dsh-open-code-review@0.1.1`，确认声明已切换为 npm 版本范围。GitHub 版与 npm 版必须是同一个已验证发布产物；不要只换源却未核对运行状态。
+5. 后续每次插件发版同步发布相同版本的 GitHub Release 和 npm 包，再校验 `latest` 指向预期版本。npm 包版本不可用覆盖发布来更换内容。
+
+目录会自动发现符合映射规则的 npm 包。不要在市场条目手写 `npm:` 字段，当前目录校验不接受该字段。原有稳定 `tarball` 安装地址可以保留。
+
+参考：[npm 发布公开包](https://docs.npmjs.com/creating-and-publishing-unscoped-public-packages/)、[市场目录 npm 说明](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md#npm-package--npm-包optional--可选)。
+
 ## 4. Open Code Review 升级的维护流程
 
 上游：[仓库](https://github.com/alibaba/open-code-review)、[发布记录](https://github.com/alibaba/open-code-review/releases)。先选定目标版本，不在用户的一次审查任务中自动安装最新版。
