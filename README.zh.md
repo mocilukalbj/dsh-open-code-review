@@ -82,6 +82,8 @@ Agent 会按 `(路径, 状态)` 维护完整清单，最终给出问题证据、
 
 OCR 升级、DSH 兼容性、接入方式迁移、发布和回滚流程见 [更新维护说明](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md)。
 
+仓库已加入 GitHub Release → npm 发布工作流；包所有者需先在 npm 授权该工作流为 Trusted Publisher，配置和发版步骤见更新维护说明。
+
 dsh-market 可以检测已安装 npm 包的新版本；实际应用仍受 Host 的包脚本策略约束。也可用 `dsh plugin --profile web add dsh-open-code-review@<已验证版本> --save-exact --ignore-scripts` 安装指定版本；已有 Release 安装也可用此命令切换为 npm 来源。插件更新会一起更新其固定的 OCR 依赖，不影响另外安装的全局 OCR。GitHub Release 的带版本 tarball 仍可用于手动安装或回滚。
 
 ```sh

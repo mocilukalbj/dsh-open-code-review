@@ -91,7 +91,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-sc
 
 随后检查 profile `package.json` 的 `dependencies.dsh-open-code-review` 已从 GitHub URL 切换为 npm 版本，并核对锁文件、已安装版本及工具状态；按 Host 提示重载或重启，新建会话验证。未来 npm `latest` 高于已装版本时，市场才能提示更新；实际安装仍取决于 Host 的包脚本策略。Market Update API v1 复用同一更新流程，不能靠插件元数据让 Release URL 按 GitHub Release 自动跟踪。
 
-以后每次发版同步发布**同一份已验证包**到 GitHub Release 与 npm，检查 `npm view dsh-open-code-review@<版本> version dist.integrity`、实际安装和 Host 兼容性，并确认 npm `latest` 指向预期版本。npm 已发布版本不可覆盖。目录会自动发现符合映射规则的 npm 包；不要在市场条目手写 `npm:` 字段，当前目录校验不接受该字段。稳定的 `tarball` 地址可作为备选安装源保留。
+以后按第 7 节的工作流，将 GitHub Release 的**同一份已验证包**同步到 npm；检查 `npm view dsh-open-code-review@<版本> version dist.integrity`、实际安装和 Host 兼容性。稳定版使用 npm `latest`，预发布版使用 `next`。npm 已发布版本不可覆盖。目录会自动发现符合映射规则的 npm 包；不要在市场条目手写 `npm:` 字段，当前目录校验不接受该字段。稳定的 `tarball` 地址可作为备选安装源保留。
 
 参考：[npm 发布公开包](https://docs.npmjs.com/creating-and-publishing-unscoped-public-packages/)、[市场目录 npm 说明](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md#npm-package--npm-包optional--可选)。
 
@@ -195,14 +195,26 @@ npm pack --ignore-scripts
 
 CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测试通过而绕过沙箱。再用目标 DSH 内核在隔离环境安装打包产物，确认从包内依赖解析到 OCR，而非碰巧调用了全局安装。
 
-发布时：
+### GitHub Release 自动同步 npm
 
-1. 更新插件版本、锁文件、兼容说明和验证报告，创建新的 Git tag 与 GitHub Release。
-2. `npm pack` 通常生成带版本号的文件；上传 Release 时保留一个固定资产名 **`dsh-open-code-review.tgz`**，同时提供源码包和 SHA-256 校验值。将同一份已验证 tarball 发布到 npm，核对 registry 上的版本、`latest` 和内容；不能覆盖已发布版本。
-3. 发布后实际下载并核对两个渠道的资产，检查安装入口。不要覆盖已发布版本的 tarball 来偷偷升级 OCR。
-4. 市场条目的稳定地址是 `releases/latest/download/dsh-open-code-review.tgz`。保持固定资产名，避免下一次发版后下载 404。
-5. URL、仓库、分类或功能描述发生变化时，向 [awesome-dsh-plugin 目录](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 更新本插件对应的一份 YAML；不手改其生成的 README。dsh-market 是展示/管理入口，目录合并与插件发布是不同步骤。
-6. 核对市场实际刷新和安装结果；不会因为创建了 Release 或 npm 版本就保证所有本机安装已自动更新。此前按 Release URL 安装的 profile 若需立即转为 npm 来源，按第 3 节执行一次同版本按包名安装。
+仓库的 [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml) 在 GitHub Release **published** 时运行；普通 push 只运行 CI，不发布 npm。先更新插件版本、锁文件、兼容说明及验证报告，创建同版本 `v<版本>` tag。准备 Release 时上传同一份经验证的 **`dsh-open-code-review.tgz`** 和 **`SHA256SUMS`**，确认资产已齐全后再发布 Release；不要复用已发布的版本号。源码包可由 GitHub Release 一并提供。
+
+工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` 分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
+
+手动运行 `workflow_dispatch` 时填写一个**已发布**的 Release tag；`publish` 默认 `false`，仅验证。需要同步发布时明确选择 `publish: true`，仍须通过相同的校验与测试。Release 事件本身会尝试发布。工作流已加入仓库，但 **npm Trusted Publisher 授权尚未完成时，OIDC 发布步骤会失败**；单纯合并工作流或创建 Release 不能代替授权。
+
+通过 GitHub 网页或维护者的 `gh` 登录发布 Release 会触发此流程。若另一条 Actions 工作流使用默认 `GITHUB_TOKEN` 创建 Release，GitHub 通常不会继续触发新的 Release 工作流；这种情况需显式调用本流程的 `workflow_dispatch`，并设置 `publish: true`。
+
+包所有者需在 [npm 包设置的 Trusted publishing](https://docs.npmjs.com/trusted-publishers/) 添加 GitHub Actions 发布者：仓库所有者 `mocilukalbj`、仓库 `dsh-open-code-review`、工作流文件名 `publish-npm.yml`（仅文件名，不填路径）、Environment 留空，并**明确允许直接 `npm publish`**。也可在具备该包写权限、已完成 npm 登录及 2FA 的环境使用 npm CLI **11.15.0 或更高**：
+
+```sh
+npm trust github dsh-open-code-review --repo mocilukalbj/dsh-open-code-review --file publish-npm.yml --allow-publish
+npm trust list dsh-open-code-review
+```
+
+详见 [npm trust 命令文档](https://docs.npmjs.com/cli/v11/commands/npm-trust/)。工作流使用 GitHub OIDC，不需要 `NPM_TOKEN`。授权完成后等待一次工作流验证结果，再以 npm 包名安装新版本核对实际 DSH 能力。
+
+市场条目的稳定地址是 `releases/latest/download/dsh-open-code-review.tgz`。保持固定资产名，避免下一次发版后下载 404。URL、仓库、分类或功能描述发生变化时，向 [awesome-dsh-plugin 目录](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 更新本插件对应的一份 YAML；不手改其生成的 README。dsh-market 是展示/管理入口，目录合并与插件发布是不同步骤。核对市场实际刷新和安装结果；不会因为创建了 Release 或 npm 版本就保证所有本机安装已自动更新。此前按 Release URL 安装的 profile 若需立即转为 npm 来源，按第 3 节执行一次同版本按包名安装。
 
 只补充本文等仓库文档，不改变运行代码和安装包时，可直接提交文档，不必覆盖已有 Release。本文件从 GitHub 仓库阅读；历史 Release 安装包不会因仓库文档更新而改变。
 

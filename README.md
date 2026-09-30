@@ -89,6 +89,8 @@ All tools run through DSH's managed subprocess service and resolved per-session 
 See the [upgrade and compatibility guide (中文)](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md) for OCR updates,
 DSH API migrations, integration alternatives, release checks and rollback.
 
+The repository includes a GitHub Release → npm publishing workflow. npm publishing requires the package owner to authorize the workflow as a Trusted Publisher first; setup and release steps are in the guide.
+
 dsh-market can detect newer releases of an installed npm package; applying them follows the host's package-script policy. To install a verified newer version directly, run `dsh plugin --profile web add dsh-open-code-review@<version> --save-exact --ignore-scripts`. Updates to this adapter also update its pinned OCR dependency; a separately installed global OCR is unaffected. A versioned GitHub Release tarball remains available as a manual alternative. Existing Release-tarball installs can switch to the npm source with the npm command above, even when the installed version is already `0.1.1`.
 
 ```sh

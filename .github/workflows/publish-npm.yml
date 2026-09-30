@@ -1,0 +1,195 @@
+name: Publish Release to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Published GitHub Release tag, e.g. v0.1.2'
+        required: true
+        type: string
+      publish:
+        description: 'Publish after verification (false runs verification only)'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      dist-tag: ${{ steps.release.outputs.dist-tag }}
+      status: ${{ steps.archive.outputs.status }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: automation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate requested Release
+        id: release
+        uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        with:
+          script: |
+            const tag = process.env.RELEASE_TAG;
+            if (!/^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$/.test(tag)) {
+              throw new Error('Use a versioned Release tag such as v0.1.2.');
+            }
+            const { data } = await github.rest.repos.getReleaseByTag({ ...context.repo, tag });
+            if (data.draft) throw new Error('Publish the GitHub Release before syncing npm.');
+            const version = tag.slice(1);
+            if (data.prerelease !== version.includes('-')) {
+              throw new Error('The Release prerelease flag must match its version suffix.');
+            }
+            core.setOutput('tag', tag);
+            core.setOutput('version', version);
+            core.setOutput('dist-tag', data.prerelease ? 'next' : 'latest');
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+          path: source
+      - name: Test archive verification
+        run: node --test automation/test/release.test.js
+      - name: Pack tagged source without running lifecycle scripts
+        working-directory: source
+        run: |
+          mkdir -p ../repacked
+          npm pack --ignore-scripts --pack-destination ../repacked
+      - name: Download Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          mkdir -p dist
+          # A published event can arrive before gh finishes uploading assets.
+          for attempt in {1..18}; do
+            if gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern dsh-open-code-review.tgz --pattern SHA256SUMS --dir dist --clobber && test -s dist/dsh-open-code-review.tgz && test -s dist/SHA256SUMS; then
+              break
+            fi
+            sleep 10
+          done
+          test -s dist/dsh-open-code-review.tgz
+          test -s dist/SHA256SUMS
+      - name: Read the npm version (only 404 means unpublished)
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          node --input-type=module <<'JS'
+          import { writeFileSync } from 'node:fs';
+          const url = `https://registry.npmjs.org/dsh-open-code-review/${encodeURIComponent(process.env.RELEASE_VERSION)}`;
+          const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+          if (response.status !== 404) {
+            if (!response.ok) throw new Error(`npm metadata query failed: HTTP ${response.status}`);
+            writeFileSync('dist/npm-metadata.json', JSON.stringify(await response.json()));
+          }
+          JS
+      - name: Verify checksum, source contents and npm identity
+        id: archive
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          args=(--tag "$RELEASE_TAG" --source source --tarball dist/dsh-open-code-review.tgz --checksums dist/SHA256SUMS --repacked "repacked/dsh-open-code-review-${RELEASE_VERSION}.tgz")
+          if test -f dist/npm-metadata.json; then args+=(--npm-metadata dist/npm-metadata.json); fi
+          node automation/scripts/verify-release.js "${args[@]}" > dist/verification.json
+          cat dist/verification.json
+          node --input-type=module <<'JS'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          const result = JSON.parse(readFileSync('dist/verification.json', 'utf8'));
+          appendFileSync(process.env.GITHUB_OUTPUT, `status=${result.status}\n`);
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-npm-release
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  test:
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        dsh: ['0.1.7-rc.2', '0.2.0-rc.2']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      DSH_TEST_VERSION: ${{ matrix.dsh }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - if: matrix.dsh == '0.2.0-rc.2'
+        run: npm ci --ignore-scripts
+      - if: matrix.dsh != '0.2.0-rc.2'
+        run: node scripts/select-test-host.js ${{ matrix.dsh }}
+      - if: matrix.dsh != '0.2.0-rc.2'
+        run: npm install --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:integration
+
+  publish:
+    needs: [verify, test]
+    if: (github.event_name == 'release' || inputs.publish) && needs.verify.outputs.status == 'ready-to-publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Use an OIDC-capable npm CLI
+        run: npm install --global npm@11.20.0 --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-npm-release
+          path: dist
+      - name: Publish the exact verified Release archive with OIDC
+        env:
+          NPM_DIST_TAG: ${{ needs.verify.outputs.dist-tag }}
+        run: npm publish dist/dsh-open-code-review.tgz --ignore-scripts --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
+      - name: Verify npm received the same archive
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          const integrity = 'sha512-' + createHash('sha512').update(readFileSync('dist/dsh-open-code-review.tgz')).digest('base64');
+          const url = `https://registry.npmjs.org/dsh-open-code-review/${encodeURIComponent(process.env.RELEASE_VERSION)}`;
+          for (let attempt = 0; attempt < 12; attempt++) {
+            const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+            if (response.ok) {
+              const metadata = await response.json();
+              if (metadata.dist?.integrity !== integrity) throw new Error('Published npm archive differs from the GitHub Release.');
+              console.log(`Verified npm ${metadata.name}@${metadata.version}: identical Release archive.`);
+              process.exit(0);
+            }
+            if (response.status !== 404) throw new Error(`npm verification failed: HTTP ${response.status}`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          }
+          throw new Error('npm did not expose the published version within the verification window.');
+          JS
