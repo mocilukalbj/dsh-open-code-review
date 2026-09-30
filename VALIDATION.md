@@ -88,7 +88,10 @@ at **1.12.10**; the execution implementation and skill are unchanged.
   SHA-256 recorded above. Publishing was correctly skipped.
 - The workflow publishes the original verified GitHub archive using OIDC,
   with stable versions on `latest` and prereleases on `next`. npm Trusted
-  Publisher authorization requires the package owner's interactive 2FA.
+  Publisher authorization was created after the package owner's interactive
+  2FA. npm confirmed repository `mocilukalbj/dsh-open-code-review`, workflow
+  file `publish-npm.yml`, no Environment restriction, and direct publishing
+  permission. No long-lived npm token was added to GitHub.
   This verification-only run did not exercise a new-version OIDC publication;
   that check will occur with the next new Release after authorization.
 - No runtime/dependency version changed; the existing npm and GitHub 0.1.1
