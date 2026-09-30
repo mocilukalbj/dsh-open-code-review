@@ -24,9 +24,18 @@ at **1.12.10**; the execution implementation and skill are unchanged.
   all 3 real-service integration tests passed using 0.2.0-rc.2 services.
   These include real native OCR workspace/range/commit/rules calls, read-only
   sandboxing, optional tool registration, and cancellation/join on unload.
-- CI now covers both declared DSH versions on Linux, macOS and Windows.
+- All six GitHub Actions jobs passed: both declared DSH versions on Linux,
+  macOS and Windows, including checks, all 17 tests and packing:
+  https://github.com/mocilukalbj/dsh-open-code-review/actions/runs/36688037567
+  (revision `7cde8ec3bb9d3fb6dd2e7bf1eff368d7d9df8b6a`).
   Integration tests assert the actual installed host-service versions.
-  The six-job run and full CLI smoke result will be recorded before release.
+- The production tarball installed through the real 0.2.0-rc.2 CLI in an
+  isolated `DSH_HOME`. A full base-profile startup registered both tools and
+  the callable skill. Actual native OCR preview/rules calls passed under the
+  read-only sandbox; unloading removed both tools and the skill.
+- Production archive SHA-256:
+  `7a1d1b152421e46c41de1fbc08801336e99e785814c7b96a8259f4e269f793d3`.
+  This is the exact archive used in the full CLI smoke test.
 
 The prior 0.1.0 evidence below remains a historical baseline. Live LLM requests,
 model review quality, other DSH versions and remote execution are outside this
