@@ -13,14 +13,21 @@ the native tools, skill, sandbox and managed-process integration are retained.
 - Upgrade/API migration details: [UPGRADE.zh.md](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md).
 - Validation and its limits: [VALIDATION.md](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/VALIDATION.md).
 
-Install the new pinned release into your actual profile:
+The same verified archive is also published to [npm](https://www.npmjs.com/package/dsh-open-code-review).
+Install the npm source into your actual profile for package-name update checks:
+
+```sh
+dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+```
+
+The pinned GitHub Release remains available:
 
 ```sh
 dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.1/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 Reload as prompted and start a new conversation if needed. Optional native
-OCR dependencies must remain enabled. Historical v0.1.0 assets are preserved.
+OCR dependencies must remain enabled; the upstream postinstall script is unnecessary for this adapter. Historical v0.1.0 assets are preserved.
 
 This is a community adapter. Market listing remains subject to catalog review;
 GitHub publication alone does not establish listing. No live LLM provider request

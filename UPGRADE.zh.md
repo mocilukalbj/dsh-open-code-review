@@ -7,7 +7,7 @@
 
 | 层 | 当前基线 | 更新关系 |
 | --- | --- | --- |
-| 本插件 | `0.1.1` | GitHub Release 分发原生 DSH bundle，未发布 npm 包。 |
+| 本插件 | `0.1.1` | 同版本 npm 包与 GitHub Release 均已发布；推荐 npm 作为日常更新来源。 |
 | Open Code Review | `@alibaba-group/open-code-review@1.12.10` | 精确固定的运行依赖，随插件版本升级。 |
 | OCR 委托协议 | `schema_version: "1"` | `delegate preview` / `delegate rule` 的 JSON 契约。 |
 | DSH | `0.1.7-rc.2` / `0.2.0-rc.2` | DSH 服务 peers 明确声明两个已验证版本的 `||` 分支。 |
@@ -57,46 +57,41 @@ CLI、桌面应用和系统服务可能使用不同的内核、`DSH_HOME` 或 pr
 
 升级前备份实际 profile 的 `package.json`、`pnpm-lock.yaml`、`pnpm-workspace.yaml` 和 `cordis.patch.yml`，以及自己配置过的 OCR 配置文件。备份留在本机，不提交凭据、会话数据或用户配置到插件仓库。
 
-### 安装指定的新 Release
+### 安装指定版本
 
-从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **v0.1.1**；以后升级时替换为实际目标 tag：
+选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **0.1.1**；以后升级时替换为实际目标版本。推荐通过 npm 包安装：
+
+```sh
+dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+```
+
+也可从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 安装同版本的打包产物：
 
 ```sh
 dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.1/dsh-open-code-review.tgz --ignore-scripts
 ```
 
-正式升级推荐带版本的 URL。`releases/latest/download/dsh-open-code-review.tgz` 便于首次安装和市场展示，但固定 URL 的缓存及解析行为不适合作为“这次一定更新了”的证据。安装后核对插件版本、OCR 依赖版本及运行状态。
+手动使用 Release 升级时推荐带版本的 URL。`releases/latest/download/dsh-open-code-review.tgz` 便于首次安装和市场展示，但固定 URL 的缓存及解析行为不适合作为“这次一定更新了”的证据。安装后核对插件版本、OCR 依赖版本及运行状态。
 
-本插件自身无构建/安装脚本；应保留可选依赖，OCR 的平台二进制通过 npm/pnpm 的 optional dependencies 下载。不要使用 `--omit=optional` / `--no-optional`。
+本插件自身无构建/安装脚本，但上游 OCR 依赖带有 `postinstall`。本插件直接使用 optional dependencies 提供的平台二进制，无需运行该脚本；安装时使用 `--ignore-scripts`，不必全局允许构建。不要使用 `--omit=optional` / `--no-optional`。
 
 热重载启用时，Host 可以应用配置变更；若界面要求重启、profile 为启动时加载、或现有 agent 未刷新能力，应在当前任务结束后重载/重启，并新建会话验证。不要在审查进程尚未结束时更换其运行环境。
 
 验证：插件处于启用且 active 状态；新会话能加载 `/open-code-review`；对小型临时 Git 仓库调用预览和规则，结果范围正确。已有自定义 preset 若隐藏工具，需要在该 preset 的正常配置入口中调整可见性。
 
-### npm 404 与安装来源（2026-09-30）
+### npm 404 历史与安装来源（2026-09-30）
 
-GitHub Release 发布和 npm 发布是两个独立动作。当前 `v0.1.1` 已发布 GitHub 安装包；截至本节记录时，同名 npm 包还未发布。因此 `npm view dsh-open-code-review`、按包名安装或某些界面的按包名更新会返回 `E404`，这不代表 GitHub 安装包失效。
+`0.1.1` 刚发布 GitHub Release 时，同名 npm 包尚未发布，所以市场的按包名更新曾报 `E404`。**npm 上现已发布 `dsh-open-code-review@0.1.1`**，并核对了 npm 与同版本 Release 的打包内容。该历史错误不再表示当前包缺失。
 
-已核对的 dsh-market `1.66.6` 会把 Release tarball 安装归入 npm 更新检查，并以 `dsh-open-code-review@latest` 作为更新目标。市场目录中的 `tarball` 提供安装地址，不是一个让所有客户端都按 Release 跟踪版本的更新协议。其 update API 也复用同一更新流程。
+已核对的 dsh-market `1.66.6` 会对 Release tarball 安装查询 npm 的 `latest`。现有 Release 安装若也是 `0.1.1`，发布同版本 npm 包不会触发“有新版本”，也不会自动改写 profile 的安装来源。需要立即改用 npm 更新链时，先等运行中的 Agent 结束，再在**实际使用的 profile**执行：
 
-同名包发布到 npm 前，更新请使用本节前面的**目标 Release 带 tag URL**执行 `dsh plugin --profile web add ...`。不要仅运行 `npm update dsh-open-code-review`，也不要因这个 404 重装 OCR 或修改沙箱配置。
+```sh
+dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+```
 
-维护者首次发布 npm 的步骤：
+随后检查 profile `package.json` 的 `dependencies.dsh-open-code-review` 已从 GitHub URL 切换为 npm 版本，并核对锁文件、已安装版本及工具状态；按 Host 提示重载或重启，新建会话验证。未来 npm `latest` 高于已装版本时，市场才能提示更新；实际安装仍取决于 Host 的包脚本策略。Market Update API v1 复用同一更新流程，不能靠插件元数据让 Release URL 按 GitHub Release 自动跟踪。
 
-1. 在 npm 创建/使用自己的发布账号，在本机运行 `npm login --registry=https://registry.npmjs.org`。GitHub 登录不会自动授予 npm 发布身份；凭据留在本机。
-2. 使用已经测试、发布并校验 SHA-256 的同一份 Release tarball，先运行发布预检，再正式发布，例如：
-
-   ```sh
-   npm publish /绝对路径/dsh-open-code-review.tgz --dry-run --ignore-scripts --access public --registry=https://registry.npmjs.org
-   npm publish /绝对路径/dsh-open-code-review.tgz --ignore-scripts --access public --registry=https://registry.npmjs.org
-   ```
-
-   npm 的首次发布可能要求账号 2FA / 浏览器验证，按官方提示完成；不要把密码、OTP 或 Token 写入仓库。
-3. 核对 `npm view dsh-open-code-review@0.1.1 version dist.integrity --registry=https://registry.npmjs.org`，实际下载安装并校验包版本、入口、OCR 依赖及 Host 兼容性。
-4. 若要使用 npm 作为后续更新来源，可在自己的实际 profile 中安装 `dsh-open-code-review@0.1.1`，确认声明已切换为 npm 版本范围。GitHub 版与 npm 版必须是同一个已验证发布产物；不要只换源却未核对运行状态。
-5. 后续每次插件发版同步发布相同版本的 GitHub Release 和 npm 包，再校验 `latest` 指向预期版本。npm 包版本不可用覆盖发布来更换内容。
-
-目录会自动发现符合映射规则的 npm 包。不要在市场条目手写 `npm:` 字段，当前目录校验不接受该字段。原有稳定 `tarball` 安装地址可以保留。
+以后每次发版同步发布**同一份已验证包**到 GitHub Release 与 npm，检查 `npm view dsh-open-code-review@<版本> version dist.integrity`、实际安装和 Host 兼容性，并确认 npm `latest` 指向预期版本。npm 已发布版本不可覆盖。目录会自动发现符合映射规则的 npm 包；不要在市场条目手写 `npm:` 字段，当前目录校验不接受该字段。稳定的 `tarball` 地址可作为备选安装源保留。
 
 参考：[npm 发布公开包](https://docs.npmjs.com/creating-and-publishing-unscoped-public-packages/)、[市场目录 npm 说明](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md#npm-package--npm-包optional--可选)。
 
@@ -203,17 +198,17 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 发布时：
 
 1. 更新插件版本、锁文件、兼容说明和验证报告，创建新的 Git tag 与 GitHub Release。
-2. `npm pack` 通常生成带版本号的文件；上传 Release 时保留一个固定资产名 **`dsh-open-code-review.tgz`**，同时提供源码包和 SHA-256 校验值。
-3. 发布后实际下载并核对资产，检查安装入口。不要覆盖已发布版本的 tarball 来偷偷升级 OCR。
+2. `npm pack` 通常生成带版本号的文件；上传 Release 时保留一个固定资产名 **`dsh-open-code-review.tgz`**，同时提供源码包和 SHA-256 校验值。将同一份已验证 tarball 发布到 npm，核对 registry 上的版本、`latest` 和内容；不能覆盖已发布版本。
+3. 发布后实际下载并核对两个渠道的资产，检查安装入口。不要覆盖已发布版本的 tarball 来偷偷升级 OCR。
 4. 市场条目的稳定地址是 `releases/latest/download/dsh-open-code-review.tgz`。保持固定资产名，避免下一次发版后下载 404。
 5. URL、仓库、分类或功能描述发生变化时，向 [awesome-dsh-plugin 目录](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 更新本插件对应的一份 YAML；不手改其生成的 README。dsh-market 是展示/管理入口，目录合并与插件发布是不同步骤。
-6. 核对市场实际刷新和安装结果；不会因为创建了 Release 就保证目录已收录或所有本机安装已自动更新。
+6. 核对市场实际刷新和安装结果；不会因为创建了 Release 或 npm 版本就保证所有本机安装已自动更新。此前按 Release URL 安装的 profile 若需立即转为 npm 来源，按第 3 节执行一次同版本按包名安装。
 
 只补充本文等仓库文档，不改变运行代码和安装包时，可直接提交文档，不必覆盖已有 Release。本文件从 GitHub 仓库阅读；历史 Release 安装包不会因仓库文档更新而改变。
 
 ## 8. 回滚与常见问题
 
-回滚插件可重新安装一个与目标内核匹配的已验证 Release URL，例如旧内核可使用历史 `v0.1.0`，再按 Host 提示重载。如果同时升级了 DSH，需要先恢复与旧插件匹配的内核；旧插件不一定能在新内核上运行。
+回滚插件可重新安装一个与目标内核匹配的已验证 npm 版本或带 tag 的 Release URL，例如旧内核可使用历史 `v0.1.0` Release，再按 Host 提示重载。如果同时升级了 DSH，需要先恢复与旧插件匹配的内核；旧插件不一定能在新内核上运行。
 
 内核升级可能涉及应用数据格式迁移。回退前遵循该版本的官方迁移说明，必要时恢复升级前的数据备份；仅恢复插件 manifest 不能回退整个 DSH 环境。不要在服务仍写入配置时用旧备份覆盖整个 profile。
 
@@ -226,6 +221,6 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 | OCR JSON / schema 错误 | 上游版本和协议是否变化、输出是否混入日志或被截断。 |
 | 沙箱拒绝、审批不可用 | 文件位置、会话权限和 Host 的审批服务；通过正常审批解决，不改成无沙箱执行。 |
 | 切换 OCR 版本后行为没变 | 是否配置了 `ocrPath`；是否仍在旧 profile / 旧 agent；是否实际上只更新了全局 OCR。 |
-| latest URL 安装后版本没变 | 改用目标 Release 的带 tag URL，再核对实际安装版本和服务加载状态。 |
+| latest URL 安装后版本没变 | 改用明确的 npm 版本或目标 Release 的带 tag URL，再核对实际安装版本和服务加载状态。 |
 
 提交问题时提供插件/DSH/OCR/Node 版本、平台、安装来源、最小复现及经脱敏的错误。不要上传 API Key、登录 URL、Cookie、完整用户配置或私有代码。

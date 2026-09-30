@@ -10,21 +10,27 @@
 
 要求 DSH **0.1.7-rc.2 或 0.2.0-rc.2**、Node.js 22+、Git 2.41+。插件 **0.1.1** 修复了旧版在 DSH 0.2.0-rc.2 下的版本准入问题；其他内核版本需另行验证。标准 base/web 配置提供所需服务；自定义配置需包含 tools、skills、subprocess、sandboxPolicy、sandbox，以及用于展示和调用技能的 dsh-tool-skill。
 
-安装 GitHub Release 发布包：
+推荐从已发布的 npm 包安装到实际使用的 profile：
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz
+dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+```
+
+也可安装同版本的 GitHub Release 发布包：
+
+```sh
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 也可安装本地项目目录：
 
 ```sh
-dsh plugin --profile web add /绝对路径/dsh-open-code-review
+dsh plugin --profile web add /绝对路径/dsh-open-code-review --ignore-scripts
 ```
 
-依主程序提示刷新或重启；若当前会话没有刷新技能列表，开启新会话。插件固定依赖官方 OCR **1.12.10**，无需再全局安装 OCR。保留 npm/pnpm 的可选依赖；原生二进制覆盖 Linux、macOS、Windows 的 x64/arm64。插件自身没有安装或编译脚本，审查期间不会自动下载安装。
+依主程序提示刷新或重启；若当前会话没有刷新技能列表，开启新会话。插件固定依赖官方 OCR **1.12.10**，无需再全局安装 OCR。保留 npm/pnpm 的可选依赖；原生二进制覆盖 Linux、macOS、Windows 的 x64/arm64。上游 OCR 带有 `postinstall`，但本插件直接使用可选依赖提供的原生二进制，无需运行该脚本；因此安装命令使用 `--ignore-scripts`，不必全局允许构建。审查期间不会自动下载安装。
 
-**dsh-market 的“发现”列表需通过目录收录审核。GitHub 发布不代表已经上架。** 详见 [市场提交说明](marketplace/README.md)。
+dsh-market 的“发现”列表取决于目录收录状态；直接按包名或 Release 地址安装无需等待市场展示。详见 [市场提交说明](marketplace/README.md)。
 
 ## 使用
 
@@ -76,7 +82,7 @@ Agent 会按 `(路径, 状态)` 维护完整清单，最终给出问题证据、
 
 OCR 升级、DSH 兼容性、接入方式迁移、发布和回滚流程见 [更新维护说明](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md)。
 
-市场收录后，dsh-market 可以统一管理插件版本；插件更新会一起更新其固定的 OCR 依赖，不会更新另外安装的全局 OCR。收录前，可安装新版 tarball 更新。
+dsh-market 可以检测已安装 npm 包的新版本；实际应用仍受 Host 的包脚本策略约束。也可用 `dsh plugin --profile web add dsh-open-code-review@<已验证版本> --save-exact --ignore-scripts` 安装指定版本；已有 Release 安装也可用此命令切换为 npm 来源。插件更新会一起更新其固定的 OCR 依赖，不影响另外安装的全局 OCR。GitHub Release 的带版本 tarball 仍可用于手动安装或回滚。
 
 ```sh
 dsh plugin --profile web remove dsh-open-code-review

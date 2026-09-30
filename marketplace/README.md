@@ -9,15 +9,20 @@ Published project: https://github.com/mocilukalbj/dsh-open-code-review
 The concrete entry is `mocilukalbj__dsh-open-code-review.yml`; `entry.template.yml`
 is retained as a template for other owners. The release asset is named
 `dsh-open-code-review.tgz` so its latest-download URL stays stable.
+Version `0.1.1` is published to both npm as `dsh-open-code-review` and GitHub
+Release using the same verified package. Install the npm source with
+`dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts`;
+the catalog's `tarball` remains a fallback.
 
 Submission procedure:
 
 1. Publish this real, working project to a public repository. Replace `OWNER` in the
    entry template with the actual owner, and add `repository`, `homepage` and `bugs`
    metadata to package.json. Add the GitHub topic `dsh-plugin`.
-2. Run check, unit and integration tests. Publish to npm, or attach the tested
-   `npm pack --ignore-scripts` tarball to a GitHub Release. This project ships JS;
-   source installs also work without a prepare/build script.
+2. Run check, unit and integration tests. Publish the same tested
+   `npm pack --ignore-scripts` tarball to npm and GitHub Release. This project
+   ships JS; source installs do not need a prepare build. Keep OCR's optional
+   native package enabled while skipping its upstream postinstall script.
 3. The repository must be at least one day old to pass the catalog's age gate.
    If a PR is submitted earlier, its age check remains pending/failing until that
    threshold. The catalog's current `regate.yml` periodically rechecks such PRs;
@@ -32,6 +37,12 @@ Submission procedure:
 The release asset should have a stable filename (e.g. `dsh-open-code-review.tgz`) if
 using a `releases/latest/download/` URL. The template assumes that file is uploaded;
 otherwise remove `tarball` and use a verified npm/source distribution.
+
+The catalog discovers a matching npm package from verified repository metadata.
+Do not add an `npm:` key to the submitted YAML: the catalog currently rejects
+handwritten npm mappings. An existing profile installed from the Release tarball
+does not switch source merely because the same version appears on npm; install
+the matching npm version by name once, then future market updates can follow npm.
 
 Suggested PR title: `Add DSH Open Code Review with host-model delegation`
 

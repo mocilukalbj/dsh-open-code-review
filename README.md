@@ -11,23 +11,29 @@ This is a community adapter, not an Alibaba or DeepSeek official plugin. Delegat
 - DeepSeek Harness **0.1.7-rc.2 or 0.2.0-rc.2**. Plugin **0.1.1** fixes the old release's version admission failure on 0.2.0-rc.2; other host versions require verification.
 - Node.js 22+, Git 2.41+ and a local Git workspace.
 - Standard DSH services: tools, skills, subprocess, sandboxPolicy and sandbox. The shipped base/web profiles provide these; custom compositions must include them, plus the skill consumer (`@deepseek-ai/dsh-tool-skill`) to advertise/invoke the skill.
-- OCR **1.12.10** is a pinned runtime dependency. Its optional native packages support Linux, macOS and Windows, x64/arm64. Keep optional dependencies enabled. This adapter has no build/install scripts and does not install or update anything during a review.
+- OCR **1.12.10** is a pinned runtime dependency. Its optional native packages support Linux, macOS and Windows, x64/arm64. Keep optional dependencies enabled. Upstream OCR has a `postinstall` script, but this adapter uses its optional native binary directly and does not need that script. No package is downloaded or updated during a review.
 
 ## Install
 
-Install the published GitHub Release package:
+Install the published npm package into the profile you use:
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz
+dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+```
+
+The matching GitHub Release package is an alternative:
+
+```sh
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 For a local checkout:
 
 ```sh
-dsh plugin --profile web add /absolute/path/dsh-open-code-review
+dsh plugin --profile web add /absolute/path/dsh-open-code-review --ignore-scripts
 ```
 
-Reload/restart the profile as prompted by your host. Start a new conversation if the current preset has not refreshed its tool/skill catalog. This release must be accepted into the community catalog before it appears in dsh-market's Discover tab. See [marketplace preparation](marketplace/README.md).
+Reload/restart the profile as prompted by your host. Start a new conversation if the current preset has not refreshed its tool/skill catalog. Direct installation does not depend on the community catalog; see [marketplace information](marketplace/README.md).
 
 In the conversation:
 
@@ -83,7 +89,7 @@ All tools run through DSH's managed subprocess service and resolved per-session 
 See the [upgrade and compatibility guide (中文)](https://github.com/mocilukalbj/dsh-open-code-review/blob/main/UPGRADE.zh.md) for OCR updates,
 DSH API migrations, integration alternatives, release checks and rollback.
 
-dsh-market can manage the bundle after catalog acceptance. Its updates update this adapter and its pinned OCR dependency together; a separately installed global OCR is not updated by this plugin. Before listing, install a newer release tarball with `dsh plugin --profile web add <tarball>`.
+dsh-market can detect newer releases of an installed npm package; applying them follows the host's package-script policy. To install a verified newer version directly, run `dsh plugin --profile web add dsh-open-code-review@<version> --save-exact --ignore-scripts`. Updates to this adapter also update its pinned OCR dependency; a separately installed global OCR is unaffected. A versioned GitHub Release tarball remains available as a manual alternative. Existing Release-tarball installs can switch to the npm source with the npm command above, even when the installed version is already `0.1.1`.
 
 ```sh
 dsh plugin --profile web remove dsh-open-code-review
@@ -103,7 +109,7 @@ npm pack --ignore-scripts
 
 Integration tests load actual DSH services and this bundle through Cordis Loader, then execute the packaged OCR binary in a temporary Git repository under the real DSH sandbox. They require a working platform sandbox; an unavailable runner fails the test instead of silently bypassing confinement. No model credentials are needed. Model review quality and live API providers are outside these deterministic tests.
 
-The package ships JavaScript directly, so GitHub/source installs do not require a `prepare` build. Native OCR comes from Alibaba's platform packages; production installs should keep optional dependencies and can block lifecycle scripts.
+The package ships JavaScript directly, so GitHub/source installs do not require a `prepare` build. Native OCR comes from Alibaba's optional platform packages; keep those enabled while blocking lifecycle scripts with `--ignore-scripts`.
 
 ## Attribution
 

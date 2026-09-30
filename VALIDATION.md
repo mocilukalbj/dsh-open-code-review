@@ -46,6 +46,29 @@ at **1.12.10**; the execution implementation and skill are unchanged.
   `7a1d1b152421e46c41de1fbc08801336e99e785814c7b96a8259f4e269f793d3`.
   This is the exact archive used in the full CLI smoke test.
 
+## npm distribution and update source — 2026-09-30
+
+- `dsh-open-code-review@0.1.1` is published to the public npm registry; `latest`
+  points to 0.1.1. The npm archive matches the tested GitHub Release archive
+  byte-for-byte, including its SHA-512 integrity and SHA-256 recorded above.
+- The original failing `npm view dsh-open-code-review versions dist-tags`
+  query now succeeds and returns version/latest 0.1.1.
+- The actual web profile was migrated from the pinned Release URL to npm
+  spec `0.1.1` using the DSH CLI with `--save-exact --ignore-scripts`.
+  Other plugin specs and bundle selections were preserved. The running host
+  reports installed/enabled, no error, and an active plugin fiber.
+- dsh-market's read-only update API reports source `npm`, installed/latest
+  version 0.1.1 and `updateAvailable: false`, correctly indicating that the
+  installed version is current.
+- A clean isolated 0.2.0-rc.2 profile installed from the npm package name with
+  `--ignore-scripts`. Full Host startup, actual OCR preview/rules calls, skill
+  registration, runtime unloading and CLI removal passed.
+- Without `--ignore-scripts`, pnpm 11 rejects the upstream OCR wrapper's
+  unapproved postinstall script in a clean profile. The plugin invokes the
+  native binary supplied by optional dependencies directly, so these checks
+  skip install scripts and keep optional dependencies enabled. No global
+  build approval or release-age policy was disabled.
+
 The prior 0.1.0 evidence below remains a historical baseline. Live LLM requests,
 model review quality, other DSH versions and remote execution are outside this
 compatibility check.
