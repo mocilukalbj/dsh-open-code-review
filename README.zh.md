@@ -8,12 +8,12 @@
 
 ## 安装
 
-要求 DSH **0.1.7-rc.2 或 0.2.0-rc.2**、Node.js 22+、Git 2.41+。插件 **0.1.1** 修复了旧版在 DSH 0.2.0-rc.2 下的版本准入问题；其他内核版本需另行验证。标准 base/web 配置提供所需服务；自定义配置需包含 tools、skills、subprocess、sandboxPolicy、sandbox，以及用于展示和调用技能的 dsh-tool-skill。
+要求 DSH **0.1.7-rc.2、0.2.0-rc.2、0.2.1-rc.1 或 0.2.1-rc.2**、Node.js 22+、Git 2.41+。插件 **0.1.2** 增加了对 0.2.1 内核的版本准入；其他内核版本需另行验证。标准 base/web 配置提供所需服务；自定义配置需包含 tools、skills、subprocess、sandboxPolicy、sandbox，以及用于展示和调用技能的 dsh-tool-skill。
 
 推荐从已发布的 npm 包安装到实际使用的 profile：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
 ```
 
 也可安装同版本的 GitHub Release 发布包：

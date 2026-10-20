@@ -9,9 +9,9 @@ Published project: https://github.com/mocilukalbj/dsh-open-code-review
 The concrete entry is `mocilukalbj__dsh-open-code-review.yml`; `entry.template.yml`
 is retained as a template for other owners. The release asset is named
 `dsh-open-code-review.tgz` so its latest-download URL stays stable.
-Version `0.1.1` is published to both npm as `dsh-open-code-review` and GitHub
+Version `0.1.2` is published to both npm as `dsh-open-code-review` and GitHub
 Release using the same verified package. Install the npm source with
-`dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts`;
+`dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts`;
 the catalog's `tarball` remains a fallback.
 
 Submission procedure:

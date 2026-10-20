@@ -8,7 +8,7 @@ This is a community adapter, not an Alibaba or DeepSeek official plugin. Delegat
 
 ## Requirements
 
-- DeepSeek Harness **0.1.7-rc.2 or 0.2.0-rc.2**. Plugin **0.1.1** fixes the old release's version admission failure on 0.2.0-rc.2; other host versions require verification.
+- DeepSeek Harness **0.1.7-rc.2, 0.2.0-rc.2, 0.2.1-rc.1 or 0.2.1-rc.2**. Plugin **0.1.2** adds version admission for the 0.2.1 kernels; other host versions require verification.
 - Node.js 22+, Git 2.41+ and a local Git workspace.
 - Standard DSH services: tools, skills, subprocess, sandboxPolicy and sandbox. The shipped base/web profiles provide these; custom compositions must include them, plus the skill consumer (`@deepseek-ai/dsh-tool-skill`) to advertise/invoke the skill.
 - OCR **1.12.10** is a pinned runtime dependency. Its optional native packages support Linux, macOS and Windows, x64/arm64. Keep optional dependencies enabled. Upstream OCR has a `postinstall` script, but this adapter uses its optional native binary directly and does not need that script. No package is downloaded or updated during a review.
@@ -18,7 +18,7 @@ This is a community adapter, not an Alibaba or DeepSeek official plugin. Delegat
 Install the published npm package into the profile you use:
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
 ```
 
 The matching GitHub Release package is an alternative:
@@ -91,7 +91,7 @@ DSH API migrations, integration alternatives, release checks and rollback.
 
 The repository includes a GitHub Release → npm publishing workflow. npm publishing requires the package owner to authorize the workflow as a Trusted Publisher first; setup and release steps are in the guide.
 
-dsh-market can detect newer releases of an installed npm package; applying them follows the host's package-script policy. To install a verified newer version directly, run `dsh plugin --profile web add dsh-open-code-review@<version> --save-exact --ignore-scripts`. Updates to this adapter also update its pinned OCR dependency; a separately installed global OCR is unaffected. A versioned GitHub Release tarball remains available as a manual alternative. Existing Release-tarball installs can switch to the npm source with the npm command above, even when the installed version is already `0.1.1`.
+dsh-market can detect newer releases of an installed npm package; applying them follows the host's package-script policy. To install a verified newer version directly, run `dsh plugin --profile web add dsh-open-code-review@<version> --save-exact --ignore-scripts`. Updates to this adapter also update its pinned OCR dependency; a separately installed global OCR is unaffected. A versioned GitHub Release tarball remains available as a manual alternative. Existing Release-tarball installs can switch to the npm source with the npm command above, even when the installed version is already `0.1.2`.
 
 ```sh
 dsh plugin --profile web remove dsh-open-code-review

@@ -7,10 +7,10 @@
 
 | 层 | 当前基线 | 更新关系 |
 | --- | --- | --- |
-| 本插件 | `0.1.1` | 同版本 npm 包与 GitHub Release 均已发布；推荐 npm 作为日常更新来源。 |
+| 本插件 | `0.1.2` | 本次兼容更新版本；发布后同版本 npm 包与 GitHub Release 均可作为更新来源。 |
 | Open Code Review | `@alibaba-group/open-code-review@1.12.10` | 精确固定的运行依赖，随插件版本升级。 |
 | OCR 委托协议 | `schema_version: "1"` | `delegate preview` / `delegate rule` 的 JSON 契约。 |
-| DSH | `0.1.7-rc.2` / `0.2.0-rc.2` | DSH 服务 peers 明确声明两个已验证版本的 `||` 分支。 |
+| DSH | `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` | DSH 服务 peers 明确声明四个已验证版本的 `||` 分支。 |
 | Node.js | 22+ | 已验证 Node 22；其他主版本仍需验证。 |
 | 接入方式 | 本地 Host Cordis bundle + 原生工具 + Skill | 使用当前会话模型完成默认审查。 |
 
@@ -59,16 +59,16 @@ CLI、桌面应用和系统服务可能使用不同的内核、`DSH_HOME` 或 pr
 
 ### 安装指定版本
 
-选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **0.1.1**；以后升级时替换为实际目标版本。推荐通过 npm 包安装：
+选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **0.1.2**；以后升级时替换为实际目标版本。推荐通过 npm 包安装：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
 ```
 
 也可从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 安装同版本的打包产物：
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.1/dsh-open-code-review.tgz --ignore-scripts
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.2/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 手动使用 Release 升级时推荐带版本的 URL。`releases/latest/download/dsh-open-code-review.tgz` 便于首次安装和市场展示，但固定 URL 的缓存及解析行为不适合作为“这次一定更新了”的证据。安装后核对插件版本、OCR 依赖版本及运行状态。
@@ -79,14 +79,14 @@ dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review
 
 验证：插件处于启用且 active 状态；新会话能加载 `/open-code-review`；对小型临时 Git 仓库调用预览和规则，结果范围正确。已有自定义 preset 若隐藏工具，需要在该 preset 的正常配置入口中调整可见性。
 
-### npm 404 历史与安装来源（2026-09-30）
+### npm 404 历史与安装来源（2026-09-30；2026-10-20 更新）
 
-`0.1.1` 刚发布 GitHub Release 时，同名 npm 包尚未发布，所以市场的按包名更新曾报 `E404`。**npm 上现已发布 `dsh-open-code-review@0.1.1`**，并核对了 npm 与同版本 Release 的打包内容。该历史错误不再表示当前包缺失。
+`0.1.1` 刚发布 GitHub Release 时，同名 npm 包尚未发布，所以市场的按包名更新曾报 `E404`。该问题已在 2026-09-30 通过发布同版本 npm 包解决；`0.1.2` 继续把同一份已验证的 Release 包同步到 npm。
 
-已核对的 dsh-market `1.66.6` 会对 Release tarball 安装查询 npm 的 `latest`。现有 Release 安装若也是 `0.1.1`，发布同版本 npm 包不会触发“有新版本”，也不会自动改写 profile 的安装来源。需要立即改用 npm 更新链时，先等运行中的 Agent 结束，再在**实际使用的 profile**执行：
+已核对的 dsh-market `1.66.6` 会对 Release tarball 安装查询 npm 的 `latest`。现有 Release 安装若与 npm `latest` 同版本，不会触发“有新版本”，也不会自动改写 profile 的安装来源。需要立即改用 npm 更新链时，先等运行中的 Agent 结束，再在**实际使用的 profile**执行：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
 ```
 
 随后检查 profile `package.json` 的 `dependencies.dsh-open-code-review` 已从 GitHub URL 切换为 npm 版本，并核对锁文件、已安装版本及工具状态；按 Host 提示重载或重启，新建会话验证。未来 npm `latest` 高于已装版本时，市场才能提示更新；实际安装仍取决于 Host 的包脚本策略。Market Update API v1 复用同一更新流程，不能靠插件元数据让 Release URL 按 GitHub Release 自动跟踪。
@@ -132,7 +132,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-sc
 
 上游：[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)、[插件开发文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/index.md)。
 
-**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 为 `0.1.7-rc.2 || 0.2.0-rc.2`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
+**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 为 `0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
 
 | 接口边界 | 必须验证的契约 |
 | --- | --- |
@@ -154,7 +154,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-sc
 5. 按上表调整代码和必要的测试，再做完整 Host 启动、会话可见性、预览/规则、取消、超时、卸载、沙箱拒绝和旧版本回归验证。
 6. 只把实际验证过的组合写入兼容表并发布新插件。跨 DSH 大版本的破坏性适配，应保留旧版本可安装，而不是覆盖原 Release 资产。
 
-插件 `0.1.1` 已针对 DSH `0.2.0-rc.2` 适配，保留 `0.1.7-rc.2` 支持；不承诺整个 `0.2` 系列自动兼容。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
+插件 `0.1.2` 已针对 DSH `0.2.1-rc.1` / `0.2.1-rc.2` 适配，保留 `0.1.7-rc.2` / `0.2.0-rc.2` 支持；不承诺整个 `0.2` 系列自动兼容。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
 
 ### 0.2.0-rc.2 兼容更新记录（2026-09-30）
 
@@ -165,6 +165,14 @@ dsh plugin --profile web add dsh-open-code-review@0.1.1 --save-exact --ignore-sc
 - DSH 的版本 guard 根据 `@deepseek-ai/dsh-*` peers 判断准入；`optional` 或只放宽 `engines.dsh` 不会解决拒绝加载。本次不需要版本豁免。
 
 验证结果与范围见 [VALIDATION.md](VALIDATION.md)。旧 `v0.1.0` 仅用于匹配的旧内核；`0.2.0-rc.2` 应安装 `v0.1.1` 或后续明确支持该内核的版本。
+
+### 0.2.1-rc.1 / 0.2.1-rc.2 兼容更新记录（2026-10-20）
+
+- 目标为 npm `latest` 的 `0.2.1-rc.2`，同时验证本机运行中的 `0.2.1-rc.1`。旧插件 `0.1.1` 在这两个内核下都会因 `engines.dsh` 仅允许 `0.1.7-rc.2 || 0.2.0-rc.2` 而返回 `incompatible-version`。
+- 核对发布产物：`dsh-tools`、`dsh-skill`、`dsh-subprocess`、`dsh-sandbox`、`dsh-sandbox-policy` 的 `lib` 在 `0.2.0-rc.2` 与 `0.2.1-rc.2` 间保持兼容；`defineTool`、`execute(args, exec)` 上下文、Skill 注册、subprocess 句柄与 sandbox/审批函数均未改变。`dsh-tools` 的差异集中在 PTC `run_code` 内部，本插件不经过该路径；`dsh-subprocess-local` 的变化是 Linux 原生 containment 探测，不改变 `spawn()` 契约。
+- Cordis `4.0.4 → 4.0.5`、Schemastery `3.18.4 → 3.18.5` 只改版本号；peer 范围 `~4.0.4` / `~3.18.4` 同时覆盖旧、新内核。
+- `0.1.2` 将 DSH peers 和 `engines.dsh` 扩展为四版本 `||` 声明，默认开发依赖与锁文件更新到 `0.2.1-rc.2`，OCR 仍固定为 `1.12.10`；运行代码与 Skill 未改。
+- CI 矩阵扩展到四个 DSH 内核 × Linux / macOS / Windows 的十二种组合；`check-package.js` 现在校验 `engines.dsh` 只含精确版本、与所有 DSH peer 范围一致，并包含默认开发内核。
 
 ## 6. 如果 DSH 的接入方式发生变化
 
@@ -199,7 +207,7 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 
 仓库的 [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml) 在 GitHub Release **published** 时运行；普通 push 只运行 CI，不发布 npm。先更新插件版本、锁文件、兼容说明及验证报告，创建同版本 `v<版本>` tag。准备 Release 时上传同一份经验证的 **`dsh-open-code-review.tgz`** 和 **`SHA256SUMS`**，确认资产已齐全后再发布 Release；不要复用已发布的版本号。源码包可由 GitHub Release 一并提供。
 
-工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` 分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
+工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` 分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
 
 手动运行 `workflow_dispatch` 时填写一个**已发布**的 Release tag；`publish` 默认 `false`，仅验证。需要同步发布时明确选择 `publish: true`，仍须通过相同的校验与测试。Release 事件本身会尝试发布。工作流已加入仓库，但 **npm Trusted Publisher 授权尚未完成时，OIDC 发布步骤会失败**；单纯合并工作流或创建 Release 不能代替授权。
 

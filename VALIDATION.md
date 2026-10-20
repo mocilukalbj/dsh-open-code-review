@@ -1,4 +1,66 @@
-# Validation — 0.1.1
+# Validation — 0.1.2
+
+Compatibility update on 2026-10-20 for DeepSeek Harness **0.2.1-rc.1** (running
+local kernel/CLI) and **0.2.1-rc.2** (npm `latest`), with **0.1.7-rc.2** and
+**0.2.0-rc.2** retained as explicitly supported hosts. OCR stays pinned at
+**1.12.10**; the execution implementation and skill are unchanged.
+
+## Compatibility findings
+
+- The installed web profile and CLI both run 0.2.1-rc.1; the npm registry's
+  `latest` is 0.2.1-rc.2. The previously published 0.1.1 bundle is rejected on
+  both kernels: its `engines.dsh` allowed only `0.1.7-rc.2 || 0.2.0-rc.2`.
+  Running the target app-boot's `evaluatePluginCompatibility` reports the unmet
+  `engines.dsh` requirement for 0.2.1-rc.1 and 0.2.1-rc.2.
+- The shipped `lib` trees of `dsh-skill`, `dsh-subprocess`, `dsh-sandbox` and
+  `dsh-sandbox-policy` are unchanged between 0.2.0-rc.2 and 0.2.1-rc.2.
+  `dsh-tools` differs only in its PTC `run_code` internals; `defineTool` and the
+  `execute(args, exec)` context are unchanged. `dsh-subprocess-local` adds Linux
+  containment probes but keeps the `spawn()`/handle contract. Cordis
+  `4.0.4 → 4.0.5` and Schemastery `3.18.4 → 3.18.5` change only the version
+  field, so the existing `~4.0.4` / `~3.18.4` peer ranges cover both generations.
+- `0.1.2` extends `engines.dsh` and every DSH service peer to
+  `0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2`, updates development
+  dependencies and the lockfile to 0.2.1-rc.2, and keeps OCR at 1.12.10.
+  No version exemption, forced install or sandbox bypass is used.
+
+## Verification
+
+- Local Linux x64, Node 24.21.0, npm 11.19.0, pnpm 12.10.1, Git 2.43.0:
+  `npm run check` passed, including the new exact-host and peer-consistency
+  assertions; all 20 unit tests passed.
+- Real Loader + sandbox/subprocess integration tests ran against each declared
+  host separately (0.1.7-rc.2, 0.2.0-rc.2, 0.2.1-rc.1, 0.2.1-rc.2). All 3 tests
+  passed on every host: native OCR workspace/range/commit/rules calls,
+  read-only sandboxing, opt-in OCR-managed registration, and cancellation/join
+  on unload. Each run asserted the actually installed host-service versions.
+- `evaluatePluginCompatibility` from app-boot 0.2.1-rc.2 accepted the 0.1.2
+  manifest for all four declared runtimes; the 0.1.1 manifest was rejected for
+  both 0.2.1 kernels, reproducing the reported failure.
+- `npm pack --ignore-scripts`: 10 production files, no build step. The exact
+  archive was installed with the real 0.2.1-rc.1 CLI into an isolated
+  `DSH_HOME` (`dsh plugin --profile ocr-smoke add <tarball> --ignore-scripts`).
+  `--dump-config` composed the `open-code-review` bundle row, the installed
+  package reported 0.1.2, and the optional `ocr-linux-x64` native binary was
+  present. CLI removal removed the dependency and bundle row.
+- Production archive SHA-256:
+  `ff327a6f3602400d7d2cba59b16eae320988f45bba3e76db50c9ed0311754182`.
+
+## Limits
+
+- The updated CI matrix (four DSH kernels × Linux/macOS/Windows) has not run
+  yet; it runs on the next push or Release verification. Local checks used
+  Node 24; CI uses Node 22.
+- No live LLM request or OCR-managed model endpoint was exercised. Review
+  quality, remote execution and other DSH versions remain unverified.
+- The actual web profile was not mutated by this validation; it still has
+  0.1.1 installed. Install 0.1.2 with the documented command and reload to
+  switch it over.
+
+---
+
+# Historical validation — 0.1.1
+
 
 Compatibility update on 2026-09-30 for DeepSeek Harness **0.2.0-rc.2**,
 with **0.1.7-rc.2** retained as an explicitly supported host. OCR stays pinned
