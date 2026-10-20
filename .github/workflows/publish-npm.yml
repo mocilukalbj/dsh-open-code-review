@@ -162,6 +162,17 @@ jobs:
           node-version: '22'
       - name: Use an OIDC-capable npm CLI
         run: npm install --global npm@11.20.0 --ignore-scripts --no-audit --no-fund
+      - name: Check OIDC environment
+        run: |
+          npm --version
+          node --input-type=module <<'JS'
+          console.log(JSON.stringify({
+            github: process.env.GITHUB_ACTIONS,
+            requestUrl: Boolean(process.env.ACTIONS_ID_TOKEN_REQUEST_URL),
+            requestToken: Boolean(process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN),
+            npmIdToken: Boolean(process.env.NPM_ID_TOKEN),
+          }));
+          JS
       - uses: actions/download-artifact@v4
         with:
           name: verified-npm-release
@@ -169,7 +180,7 @@ jobs:
       - name: Publish the exact verified Release archive with OIDC
         env:
           NPM_DIST_TAG: ${{ needs.verify.outputs.dist-tag }}
-        run: npm publish ./dist/dsh-open-code-review.tgz --ignore-scripts --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org
+        run: npm publish ./dist/dsh-open-code-review.tgz --ignore-scripts --access public --tag "$NPM_DIST_TAG" --registry=https://registry.npmjs.org --loglevel silly
       - name: Verify npm received the same archive
         env:
           RELEASE_VERSION: ${{ needs.verify.outputs.version }}
