@@ -44,7 +44,9 @@ local kernel/CLI) and **0.2.1-rc.2** (npm `latest`), with **0.1.7-rc.2** and
   package reported 0.1.2, and the optional `ocr-linux-x64` native binary was
   present. CLI removal removed the dependency and bundle row.
 - Production archive SHA-256:
-  `ff327a6f3602400d7d2cba59b16eae320988f45bba3e76db50c9ed0311754182`.
+  `a620ad6ff1c3ff4fc5d6286a2f0a9fed826fefc8e5e7259d1b9f5c3b4ec4f756`
+  (rebuilt after the README refresh; the release gate reports
+  `ready-to-publish` against this archive).
 
 ## Limits
 
