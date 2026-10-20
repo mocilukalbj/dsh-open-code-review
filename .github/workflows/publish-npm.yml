@@ -173,6 +173,27 @@ jobs:
             npmIdToken: Boolean(process.env.NPM_ID_TOKEN),
           }));
           JS
+      - name: Show GitHub OIDC claims
+        run: |
+          node --input-type=module <<'JS'
+          const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          url.searchParams.set('audience', 'npm:registry.npmjs.org');
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}` },
+          });
+          if (!response.ok) throw new Error(`OIDC request failed: HTTP ${response.status}`);
+          const { value } = await response.json();
+          const claims = JSON.parse(Buffer.from(value.split('.')[1], 'base64url'));
+          console.log(JSON.stringify({
+            repository: claims.repository,
+            workflow_ref: claims.workflow_ref,
+            job_workflow_ref: claims.job_workflow_ref,
+            environment: claims.environment ?? null,
+            event_name: claims.event_name,
+            ref: claims.ref,
+            repository_visibility: claims.repository_visibility,
+          }, null, 2));
+          JS
       - uses: actions/download-artifact@v4
         with:
           name: verified-npm-release
