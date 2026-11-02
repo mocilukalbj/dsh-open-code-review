@@ -1,6 +1,6 @@
 {
   "name": "dsh-open-code-review",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Alibaba Open Code Review for DeepSeek Harness: native tools and a host-model review skill, with optional OCR-managed reviews.",
   "type": "module",
   "main": "lib/index.js",
