@@ -9,13 +9,13 @@
 [![GitHub release](https://img.shields.io/github/v/tag/mocilukalbj/dsh-open-code-review?label=release)](https://github.com/mocilukalbj/dsh-open-code-review/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/mocilukalbj/dsh-open-code-review/test.yml?branch=main&label=CI)](https://github.com/mocilukalbj/dsh-open-code-review/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![DSH](https://img.shields.io/badge/DSH-0.1.7%20%E2%86%92%200.2.1-6f42c1)](#兼容性)
+[![DSH](https://img.shields.io/badge/DSH-0.1.7%20%E2%86%92%200.2.2-6f42c1)](#兼容性)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A522-339933?logo=node.js&logoColor=white)](#环境要求)
 
 **[English](README.md)** · 简体中文
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 </div>
@@ -45,7 +45,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-sc
 - ✅ **默认沙箱化** —— 走 DSH 托管子进程；只有单次审批才能获得更宽权限，拒绝即失败关闭。
 - ✅ **干净的生命周期** —— 取消、超时、插件卸载都会停止并等待所属进程退出。
 - ✅ **版本固定、离线可用** —— 内置 OCR 1.12.10，审查期间不下载、不检查更新。
-- ✅ **四个已验证内核** —— DSH 0.1.7-rc.2 到 0.2.1-rc.2，由加载真实 DSH 服务的集成测试覆盖。
+- ✅ **六个已验证内核** —— DSH 0.1.7-rc.2 到 0.2.2-rc.1，由加载真实 DSH 服务的集成测试覆盖。
 
 ## 工作原理
 
@@ -67,13 +67,13 @@ OCR 提供确定性的文件筛选和规则解析，Agent 负责审查。改动�
 **1. 安装**到实际使用的 profile：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 也可安装同版本的 GitHub Release 包：
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz --ignore-scripts
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.4/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 本地项目目录同样可以：
@@ -101,7 +101,7 @@ dsh plugin --profile web add /绝对路径/dsh-open-code-review --ignore-scripts
 
 - **DSH**：使用[兼容性表](#兼容性)中已验证的内核，其他版本需另行验证。
 - **Node.js 22+**、Git 2.41+，以及一个本地 Git 工作区。
-- **标准 DSH 服务**：`tools`、`skills`、`subprocess`、`sandboxPolicy`、`sandbox`。官方 base/web 配置已包含；自定义组合还需加入技能消费插件（`@deepseek-ai/dsh-tool-skill`），用于展示和调用技能。
+- **标准 DSH 服务**：`tools`、`skills`、`subprocess`、`sandboxPolicy`、`sandbox`。官方 base/web 配置已包含；自定义组合还需加入技能消费插件（`@deepseek-ai/dsh-tool-skill`），用于展示和调用技能。自 0.2.2-rc.1 起，工具 dispatch 由组合挂载的 executor（`@deepseek-ai/dsh-tool-executor-native`）承担，`dsh-base` 默认已挂载。
 - **OCR 随插件固定**：`@alibaba-group/open-code-review@1.12.10`。可选原生包覆盖 Linux、macOS、Windows 的 x64/arm64；请保留 npm/pnpm 的可选依赖。上游带 `postinstall`，但本插件直接调用原生二进制，无需该脚本，安装时使用 `--ignore-scripts`。审查期间不会下载或更新任何包。
 
 ## 使用方式
@@ -140,10 +140,15 @@ dsh plugin --profile web add /绝对路径/dsh-open-code-review --ignore-scripts
 | `0.2.0-rc.2` | ✅ 已验证 —— 三平台 CI + 本地集成测试 |
 | `0.2.1-rc.1` | ✅ 已验证 —— 本地 Linux 集成测试；CI 矩阵覆盖 macOS/Windows |
 | `0.2.1-rc.2` | ✅ 已验证 —— 本地 Linux 集成测试；CI 矩阵覆盖 macOS/Windows |
+| `0.2.1-rc.5` | ✅ 已验证 —— 在使用该内核的辅助 checkout 中通过集成测试；CI 覆盖三个平台 |
+| `0.2.2-rc.1` | ✅ 已验证 —— 真实 Linux 集成测试（dispatch 经由原生 executor）；CI 矩阵覆盖 macOS/Windows |
 | 其他版本 | 不在承诺范围内。准入由 `engines.dsh` 决定，DSH 可能拒绝加载。 |
 
-插件 **0.1.2** 增加了对 0.2.1 内核的版本准入。逐版本 API 说明见
-[UPGRADE.zh.md](UPGRADE.zh.md)，实际验证范围与边界见 [VALIDATION.md](VALIDATION.md)。
+插件 **0.1.3**（GitHub 草稿 Release，从未发布到 npm）加入了对 0.2.1-rc.5 的版本准入，**0.1.4** 加入 0.2.2-rc.1 ——
+该内核把工具 dispatch 拆给由组合挂载的 executor。插件自身使用的 API 没有
+变化，且真实宿主 `dsh-base` 默认已挂载该 executor，对用户暴露的工具照旧。
+逐版本 API 说明见 [UPGRADE.zh.md](UPGRADE.zh.md)，实际验证范围与边界见
+[VALIDATION.md](VALIDATION.md)。
 
 ## 安全与执行模型
 
@@ -228,7 +233,8 @@ npm pack --ignore-scripts
 ```
 
 集成测试通过真实 Cordis Loader 加载 DSH 服务和本插件，然后在真实 DSH 沙箱中、于临时 Git 仓库里
-运行打包的 OCR 二进制。平台沙箱不可用时测试会失败，不会悄悄绕过隔离。测试不需要模型密钥；
+运行打包的 OCR 二进制。在 0.2.2-rc.1 上，测试套件会挂载组合提供的工具 executor 并使用其批量
+结果格式，借助代际检测让同一套测试继续运行于旧内核。平台沙箱不可用时测试会失败，不会悄悄绕过隔离。测试不需要模型密钥；
 模型审查质量和在线 API 连通性不在这些确定性测试的范围内。
 
 包内直接提供 JavaScript，源码安装不需要 `prepare` 构建。原生 OCR 来自阿里的可选平台包，

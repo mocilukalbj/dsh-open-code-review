@@ -1,3 +1,97 @@
+# Validation — 0.1.4
+
+Compatibility update on 2026-11-11 for DeepSeek Harness **0.2.2-rc.1** — npm
+`latest`/`next` and the kernel running on the validation machine — while keeping
+**0.1.7-rc.2**, **0.2.0-rc.2**, **0.2.1-rc.1**, **0.2.1-rc.2** and
+**0.2.1-rc.5** as explicitly admitted hosts. OCR stays pinned at **1.12.10**.
+Nothing changed under `lib/`, `skills/` or `cordis.patch.yml`: the release moves
+the version ranges, the development host line, the integration harness and CI.
+
+## Compatibility findings
+
+- The running 0.2.2-rc.1 host rejected both earlier manifests. Calling the
+  target kernel's `evaluatePluginCompatibility()` reproduces the admission
+  failure: 0.1.2 reports the unmet `engines.dsh`
+  `0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2`, and 0.1.3 reports the
+  same requirement extended only to `0.2.1-rc.5`. Deleting `engines.dsh` does
+  not help — the five `@deepseek-ai/dsh-*` peers are then each reported unmet,
+  which is why `engines.dsh` and every DSH peer must move together
+  (`scripts/check-package.js` enforces the equality).
+- 0.2.2-rc.1 ships Cordis `4.1.0`, Schemastery `3.19.0` and Cordis Loader
+  `1.1.0`, so the old `~4.0.4` / `~3.18.4` peer ranges no longer describe the
+  host line. They widen to `~4.0.4 || ~4.1.0` and `~3.18.4 || ~3.19.0`;
+  admission itself remains decided by `engines.dsh` alone.
+- The service surface this plugin uses is unchanged between 0.2.1-rc.2 and
+  0.2.2-rc.1. Comparing the two installed kernel trees: the `lib` of `dsh-skill`,
+  `dsh-subprocess`, `dsh-subprocess-local` and `schemastery` is byte-identical;
+  `dsh-sandbox`'s `escalation` and `diagnostics` declarations are byte-identical
+  with `confine(argv, policy, signal?)` unchanged and only additive members
+  (`additionalWritableRoots`, `SandboxUnsupportedPolicyError`);
+  `dsh-sandbox-policy.resolve()` is unchanged; `defineTool` and
+  `DefineToolOptions` are unchanged, `register(definition, options?)` stays
+  compatible, and the tool body is still invoked as `tool.execute(exec.arguments,
+  exec)` with `callId`, `name`, `agent?` and `signal`.
+- The one real restructuring is in `dsh-tools`: dispatch moved to an executor
+  mounted by the composition, and `ctx.tools.execute()` now takes a raw batch
+  (`{ calls: [{ type: 'tool-call', id, name, arguments }], signal, agent?,
+  toolSet?, maxParallelToolCalls? }`) and returns `{ results: [{ callId, result
+  }], additionalContexts, concluded }`. `dsh-base` mounts
+  `@deepseek-ai/dsh-tool-executor-native` by default (the PTC executor ships
+  disabled), so users see no behavioural change; the executor package only
+  exists from 0.2.2-alpha.2, so test hosts below 0.2.2 must not depend on it.
+- 0.1.4 is admitted on all six declared runtimes: `evaluatePluginCompatibility()`
+  returns no unmet requirement for 0.2.2-rc.1, 0.2.1-rc.5, 0.2.1-rc.2,
+  0.2.0-rc.2 and 0.1.7-rc.2.
+
+## Verification
+
+- Local Linux x86-64, Node 22.23.1, npm 10.9.8, Git 2.55.0, bubblewrap 0.12.0,
+  running kernel `0.2.2-rc.1`.
+- Default host 0.2.2-rc.1 from the committed lockfile (the `npm ci` path):
+  `npm run check` passed, including the six exact-host and peer-consistency
+  assertions; all 20 unit tests passed; all 3 integration tests passed with real
+  Loader + services — native OCR workspace/range/commit/rules calls under a
+  read-only sandbox, opt-in OCR-managed registration, an invalid scope returned
+  as a normal tool error, and unload terminating and joining the live subprocess.
+- The same suite ran in scratch checkouts selected per kernel, each asserting the
+  actually installed service versions through `DSH_TEST_VERSION`:
+  **0.2.1-rc.5**, **0.2.1-rc.2** and **0.1.7-rc.2** — legacy single-call dispatch,
+  no executor dependency, Cordis 4.0.5 / Schemastery 3.18.5 / Loader 1.0.6 — each
+  passed `npm run check`, 20/20 unit and 3/3 integration.
+- `npm pack --ignore-scripts`: 10 production files, no build step. The exact
+  archive was installed with the real 0.2.2-rc.1 CLI into an isolated `DSH_HOME`
+  (`dsh plugin --profile ocr-smoke add <tarball> --save-exact --ignore-scripts`):
+  the profile reported 0.1.4, `--dump-config` composed the `open-code-review`
+  bundle row, `@alibaba-group/ocr-linux-x64/bin/opencodereview` resolved from the
+  profile's own optional dependency, and no `@deepseek-ai/*` host service was
+  duplicated into the profile. CLI removal dropped both the dependency and the
+  bundle row, and `--dump-config` then contained no `open-code-review` reference.
+- Production archive SHA-256: `9a754c8fc7d6cec09c5eeb5d6d4a2fccf0cdcd8c7a3ba9088fc5a2f5bb1f9f22`
+  (`SHA256SUMS` ships beside `dsh-open-code-review.tgz` in the GitHub Release; two
+  independent `npm pack --ignore-scripts` runs produce byte-identical archives.)
+
+## Limits
+
+- **0.2.0-rc.2** and **0.2.1-rc.1** were not re-run locally in this cycle; the
+  six-kernel × Linux/macOS/Windows CI matrix covers them and had not yet run for
+  this commit at the time of writing.
+- macOS and Windows containment internals (`dsh-sandbox-local` profiles,
+  `dsh-sandbox-windows-acl`) did change in 0.2.2 even though the `confine()`
+  contract did not; real denial behaviour on those platforms is CI-only here.
+- Tools were exercised through the native executor only. Presentation of these
+  tools under the PTC executor (`run_code`), which `dsh-base` ships disabled, was
+  not exercised.
+- No live LLM request and no OCR-managed model endpoint was used. Review quality,
+  remote execution and DSH versions outside the six listed hosts remain
+  unverified.
+- npm Trusted Publishing over OIDC is still blocked by
+  [npm/cli#9969](https://github.com/npm/cli/issues/9969) for repositories created
+  after 2026-07-15, so the publish job cannot complete the token exchange; this
+  release publishes the same verified archive manually and re-checks
+  `dist.integrity`.
+
+---
+
 # Validation — 0.1.2
 
 Compatibility update on 2026-10-20 for DeepSeek Harness **0.2.1-rc.1** (running
