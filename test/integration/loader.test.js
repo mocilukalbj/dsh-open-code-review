@@ -15,6 +15,13 @@ const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 
+// DSH 0.2.2 split dispatch away from the tool registry: `ctx.tools.execute()` now delegates a raw
+// call batch to a mounted executor, and the batch input/output shape changed. Older hosts still
+// accept one legacy call object and return its result directly.
+const [toolsMajor, toolsMinor, toolsPatch] = require('@deepseek-ai/dsh-tools/package.json').version
+  .split('-')[0].split('.').map(Number);
+const batchDispatch = toolsMajor > 0 || toolsMinor > 2 || (toolsMinor === 2 && toolsPatch >= 2);
+
 async function load(config = {}) {
   if (process.env.DSH_TEST_VERSION) {
     for (const service of ['tools', 'skill', 'subprocess', 'sandbox', 'sandbox-policy']) {
@@ -26,6 +33,10 @@ async function load(config = {}) {
   const loaderFiber = ctx.plugin(Loader);
   await loaderFiber.await();
   const rows = yaml.load(await readFile(new URL('./cordis.yml', import.meta.url), 'utf8'));
+  if (batchDispatch) {
+    // The deployment mounts one executor; dsh-base ships this native provider.
+    rows.push({ id: 'tool-executor-native', name: '@deepseek-ai/dsh-tool-executor-native' });
+  }
   const bundle = yaml.load(await readFile(path.join(root, 'cordis.patch.yml'), 'utf8'));
   rows.push(...bundle[0].insert.map(row => ({ ...row, config })));
   for (const row of rows) {
@@ -41,9 +52,19 @@ async function load(config = {}) {
   return ctx;
 }
 
+/** Run one call and return the settled result on either dispatch generation. */
+async function dispatch(ctx, { callId, name, args, signal }) {
+  if (!batchDispatch) return ctx.tools.execute({ callId, name, arguments: args, signal });
+  const batch = await ctx.tools.execute({
+    calls: [{ type: 'tool-call', id: callId, name, arguments: JSON.stringify(args) }],
+    signal,
+  });
+  return batch.results[0].result;
+}
+
 let calls = 0;
 async function call(ctx, name, args) {
-  const result = await ctx.tools.execute({ callId: `integration-${++calls}`, name, arguments: args, signal: new AbortController().signal });
+  const result = await dispatch(ctx, { callId: `integration-${++calls}`, name, args, signal: new AbortController().signal });
   assert.equal(result.isError, false, JSON.stringify(result));
   return result.value;
 }
@@ -99,7 +120,7 @@ test('full OCR mode is opt-in and invalid scope becomes a normal tool error', as
   t.after(() => ctx.fiber.dispose());
   assert.ok(ctx.tools.schemas().some(tool => tool.name === 'ocr_review'));
   assert.ok(ctx.tools.schemas().some(tool => tool.name === 'ocr_llm_test'));
-  const result = await ctx.tools.execute({ callId: 'invalid', name: 'ocr_preview', arguments: { repo: root, from: 'a', commit: 'b' }, signal: new AbortController().signal });
+  const result = await dispatch(ctx, { callId: 'invalid', name: 'ocr_preview', args: { repo: root, from: 'a', commit: 'b' }, signal: new AbortController().signal });
   assert.equal(result.isError, true);
   assert.ok(JSON.stringify(result).includes('cannot be combined'));
 });
@@ -114,7 +135,7 @@ test('unloading an active tool joins its real sandboxed subprocess', { timeout: 
   let handle;
   const spawn = ctx.subprocess.spawn.bind(ctx.subprocess);
   ctx.subprocess.spawn = options => (handle = spawn(options));
-  const resultPromise = ctx.tools.execute({ callId: 'unload', name: 'ocr_preview', arguments: { repo }, signal: new AbortController().signal });
+  const resultPromise = dispatch(ctx, { callId: 'unload', name: 'ocr_preview', args: { repo }, signal: new AbortController().signal });
   let pid;
   for (let attempt = 0; attempt < 200; attempt++) {
     pid = Number(handle?.collected.stdout.readFrom(0).text.trim());

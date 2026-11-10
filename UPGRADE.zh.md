@@ -1,16 +1,16 @@
 # 更新、兼容与 DSH 接入维护说明
 
 适用项目：[`dsh-open-code-review`](https://github.com/mocilukalbj/dsh-open-code-review)。
-记录日期：2026-09-30。本说明区分**已经验证的行为**和**未来版本的适配方案**；不承诺未经测试的新版本兼容。
+记录日期：2026-11-11。本说明区分**已经验证的行为**和**未来版本的适配方案**；不承诺未经测试的新版本兼容。
 
 ## 1. 当前版本基线
 
 | 层 | 当前基线 | 更新关系 |
 | --- | --- | --- |
-| 本插件 | `0.1.2` | 本次兼容更新版本；发布后同版本 npm 包与 GitHub Release 均可作为更新来源。 |
+| 本插件 | `0.1.4` | 本次兼容更新版本；发布后同版本 npm 包与 GitHub Release 均可作为更新来源。 |
 | Open Code Review | `@alibaba-group/open-code-review@1.12.10` | 精确固定的运行依赖，随插件版本升级。 |
 | OCR 委托协议 | `schema_version: "1"` | `delegate preview` / `delegate rule` 的 JSON 契约。 |
-| DSH | `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` | DSH 服务 peers 明确声明四个已验证版本的 `||` 分支。 |
+| DSH | `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` / `0.2.1-rc.5` / `0.2.2-rc.1` | DSH 服务 peers 明确声明六个已验证版本的 `||` 分支。默认开发内核为 `0.2.2-rc.1`（Cordis `4.1.0`、Schemastery `3.19.0`、Loader `1.1.0`）；`0.2.2` 之前的内核使用 Cordis `4.0.5` / Schemastery `3.18.5` / Loader `1.0.6`。 |
 | Node.js | 22+ | 已验证 Node 22；其他主版本仍需验证。 |
 | 接入方式 | 本地 Host Cordis bundle + 原生工具 + Skill | 使用当前会话模型完成默认审查。 |
 
@@ -37,6 +37,7 @@ profile/package.json 的 dsh.profile.bundles
 - 工具与 Skill 注册在 Host 层。Agent 的工具过滤、preset、Skill 消费插件仍会影响实际可见性；只看到安装记录不等于会话已经能调用。
 - `repo` 默认来自调用会话的工作目录，不是 DSH 服务进程的启动目录。
 - 沙箱、审批、取消、超时和卸载由当前 Host 接口协同处理。升级时不能只验证命令能运行，还要验证这些行为仍然成立。
+- DSH `0.2.2` 起，工具注册与工具派发分离：`ctx.tools` 只做注册表，实际执行由组合挂载的 **executor** 承担（`dsh-base` 默认挂载 `@deepseek-ai/dsh-tool-executor-native`，PTC executor 默认关闭）。本插件仍然只注册工具，不需要自己挂 executor；但独立测试组合必须显式挂载，否则派发返回 `TOOL_EXECUTOR_UNAVAILABLE`。
 
 参考：[DSH bundle 发布](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/publish.md)、[工具服务](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/core/tools/README.md)。链接跟随上游主分支，具体实现应与目标内核版本一起核对。
 
@@ -59,16 +60,16 @@ CLI、桌面应用和系统服务可能使用不同的内核、`DSH_HOME` 或 pr
 
 ### 安装指定版本
 
-选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **0.1.2**；以后升级时替换为实际目标版本。推荐通过 npm 包安装：
+选择已经发布、兼容当前 DSH 的版本。本次兼容更新使用 **0.1.4**；以后升级时替换为实际目标版本。推荐通过 npm 包安装：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 也可从 [Releases](https://github.com/mocilukalbj/dsh-open-code-review/releases) 安装同版本的打包产物：
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.2/dsh-open-code-review.tgz --ignore-scripts
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.4/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 手动使用 Release 升级时推荐带版本的 URL。`releases/latest/download/dsh-open-code-review.tgz` 便于首次安装和市场展示，但固定 URL 的缓存及解析行为不适合作为“这次一定更新了”的证据。安装后核对插件版本、OCR 依赖版本及运行状态。
@@ -86,7 +87,7 @@ dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review
 已核对的 dsh-market `1.66.6` 会对 Release tarball 安装查询 npm 的 `latest`。现有 Release 安装若与 npm `latest` 同版本，不会触发“有新版本”，也不会自动改写 profile 的安装来源。需要立即改用 npm 更新链时，先等运行中的 Agent 结束，再在**实际使用的 profile**执行：
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 随后检查 profile `package.json` 的 `dependencies.dsh-open-code-review` 已从 GitHub URL 切换为 npm 版本，并核对锁文件、已安装版本及工具状态；按 Host 提示重载或重启，新建会话验证。未来 npm `latest` 高于已装版本时，市场才能提示更新；实际安装仍取决于 Host 的包脚本策略。Market Update API v1 复用同一更新流程，不能靠插件元数据让 Release URL 按 GitHub Release 自动跟踪。
@@ -132,7 +133,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-sc
 
 上游：[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)、[插件开发文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/index.md)。
 
-**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 为 `0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
+**先验证新内核，再更新日常环境。**当前 DSH 服务 peers 为 `0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1`。`engines.dsh` 写得更宽不代表新内核已兼容：DSH 的插件准入检查会读取对应服务的 peer 声明。`optional` peer 也不代表可以忽略 Host 的版本准入检查。
 
 | 接口边界 | 必须验证的契约 |
 | --- | --- |
@@ -154,7 +155,7 @@ dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-sc
 5. 按上表调整代码和必要的测试，再做完整 Host 启动、会话可见性、预览/规则、取消、超时、卸载、沙箱拒绝和旧版本回归验证。
 6. 只把实际验证过的组合写入兼容表并发布新插件。跨 DSH 大版本的破坏性适配，应保留旧版本可安装，而不是覆盖原 Release 资产。
 
-插件 `0.1.2` 已针对 DSH `0.2.1-rc.1` / `0.2.1-rc.2` 适配，保留 `0.1.7-rc.2` / `0.2.0-rc.2` 支持；不承诺整个 `0.2` 系列自动兼容。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
+插件 `0.1.4` 已针对 DSH `0.2.2-rc.1` 适配，保留 `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` / `0.2.1-rc.5` 支持；不承诺整个 `0.2` 系列自动兼容。不要把 `allow-version`、强制安装或关闭沙箱当作兼容性修复；它们不能改变真实的接口契约。
 
 ### 0.2.0-rc.2 兼容更新记录（2026-09-30）
 
@@ -173,6 +174,22 @@ dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-sc
 - Cordis `4.0.4 → 4.0.5`、Schemastery `3.18.4 → 3.18.5` 只改版本号；peer 范围 `~4.0.4` / `~3.18.4` 同时覆盖旧、新内核。
 - `0.1.2` 将 DSH peers 和 `engines.dsh` 扩展为四版本 `||` 声明，默认开发依赖与锁文件更新到 `0.2.1-rc.2`，OCR 仍固定为 `1.12.10`；运行代码与 Skill 未改。
 - CI 矩阵扩展到四个 DSH 内核 × Linux / macOS / Windows 的十二种组合；`check-package.js` 现在校验 `engines.dsh` 只含精确版本、与所有 DSH peer 范围一致，并包含默认开发内核。
+
+### 0.2.1-rc.5 兼容更新记录（2026-11-02，插件 0.1.3）
+
+- `engines.dsh` 与五项 DSH peer 增加 `0.2.1-rc.5`，`scripts/select-test-host.js` 白名单同步；运行代码与 Skill 未改。
+- 默认开发依赖仍是 `0.2.1-rc.2`，在带该内核的辅助 checkout 中验证集成测试通过。
+- `v0.1.3` 的 GitHub Release 至今是**未发布的草稿**，npm 上没有 `0.1.3`；因此 `0.1.3` 不是可安装版本，本次 `0.1.4` 直接沿用并扩展它的版本声明。
+
+### 0.2.2-rc.1 兼容更新记录（2026-11-11，插件 0.1.4）
+
+- 本机运行内核与 npm `latest` / `next` 同为 `0.2.2-rc.1`。旧插件按 `evaluatePluginCompatibility()` 实测被拒绝：`engines.dsh` 单独决定准入时返回 `{"engines.dsh": "…|| 0.2.1-rc.5"}` 不满足；去掉 `engines.dsh` 改由 peer 判定，五项 `@deepseek-ai/dsh-*` 同样不满足。
+- 逐项核对 `0.2.1-rc.2` 与 `0.2.2-rc.1` 两棵内核产物：`dsh-skill`、`dsh-subprocess`（含 `-local`）的 `lib` 逐字节相同；`dsh-sandbox` 的 `escalation` 与 `diagnostics` 头文件逐字节相同，`confine(argv, policy, signal?)` 签名不变，新增的是**可选** `additionalWritableRoots` 和 `SandboxUnsupportedPolicyError`；`dsh-sandbox-policy.resolve()` 不变；`defineTool` / `DefineToolOptions` / `register(definition, options?)` / `exec` 字段保持兼容。因此 `lib/`、`skills/`、`cordis.patch.yml` 未改。
+- 真实重构在派发侧：`dsh-tools` 把执行交给组合挂载的 executor，`ctx.tools.execute()` 改为批次契约（入参 `{ calls: ToolCallBlock[], signal, agent?, toolSet?, maxParallelToolCalls? }`，返回 `{ results: [{ callId, result }], additionalContexts, concluded }`）。官方 `dsh-base` 默认挂 `@deepseek-ai/dsh-tool-executor-native`，所以对插件使用者没有行为变化；但插件的独立测试组合必须自己挂载 executor，否则得到 `TOOL_EXECUTOR_UNAVAILABLE`。集成测试按 `dsh-tools` 版本选择派发形态，新旧内核共用同一份用例。
+- Cordis `4.0.5 → 4.1.0`、Schemastery `3.18.5 → 3.19.0`、Loader `1.0.6 → 1.1.0` 跨了 minor：peer 放宽为 `~4.0.4 || ~4.1.0` 与 `~3.18.4 || ~3.19.0`；`scripts/select-test-host.js` 改为按内核世代锁定这三项，并在 `0.2.2` 之前的内核移除 `@deepseek-ai/dsh-tool-executor-native` 依赖（该包从 `0.2.2-alpha.2` 起才发布），避免装出第二套 Cordis 实例。
+- `0.1.4` 把 `engines.dsh` 与 DSH peers 扩为六个已验证版本，默认开发内核与锁文件升到 `0.2.2-rc.1`，OCR 仍固定为 `1.12.10`；CI 为六个 DSH 内核 × Linux / macOS / Windows 的十八种组合，`npm ci` 的默认内核改为 `0.2.2-rc.1`。
+- 本地 Linux x64 实测：`0.2.2-rc.1`、`0.2.1-rc.5`、`0.2.1-rc.2`、`0.1.7-rc.2` 四个内核下 `npm run check` 通过、单元 20/20、集成 3/3（真实 bwrap 沙箱、打包的原生 OCR、错误结果语义、卸载时终止并 join 子进程）。范围与限制见 [VALIDATION.md](VALIDATION.md)。
+- 发布：npm Trusted Publishing / OIDC 仍受 [npm/cli#9969](https://github.com/npm/cli/issues/9969) 阻塞（2026-07-15 之后创建的仓库其 OIDC subject 无法被 registry 匹配），本次用**同一份经验证的 Release tgz** 手动 `npm publish`，并核对 npm `dist.integrity` 与 GitHub 资产一致；不覆盖任何已用版本号，`v0.1.3` 草稿保持原样。
 
 ## 6. 如果 DSH 的接入方式发生变化
 
@@ -207,7 +224,9 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 
 仓库的 [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml) 在 GitHub Release **published** 时运行；普通 push 只运行 CI，不发布 npm。先更新插件版本、锁文件、兼容说明及验证报告，创建同版本 `v<版本>` tag。准备 Release 时上传同一份经验证的 **`dsh-open-code-review.tgz`** 和 **`SHA256SUMS`**，确认资产已齐全后再发布 Release；不要复用已发布的版本号。源码包可由 GitHub Release 一并提供。
 
-工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` 分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
+工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` / `0.2.1-rc.5` / `0.2.2-rc.1` 六个内核分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
+
+**当前 OIDC 不可用**：本仓库创建于 2026-07-15 之后，GitHub 签发的 subject 带 immutable 标签，npm registry 无法匹配，令牌交换返回 404（[npm/cli#9969](https://github.com/npm/cli/issues/9969)）。因此 `publish` 作业会失败，发布要走人工通道：确认 `verify` 与 `test` 两个作业在六个内核上全绿、Release 资产与 `verify-release.js` 结论一致后，由具备该包写权限并已 `npm login`（含 2FA）的环境对**同一个 tgz** 执行 `npm publish ./dsh-open-code-review.tgz --ignore-scripts --access public --tag latest`，再核对 npm `dist.integrity` 与 Release 资产字节一致。上游修复后仍应回到自动通道，不要长期依赖手工发布。
 
 手动运行 `workflow_dispatch` 时填写一个**已发布**的 Release tag；`publish` 默认 `false`，仅验证。需要同步发布时明确选择 `publish: true`，仍须通过相同的校验与测试。Release 事件本身会尝试发布。工作流已加入仓库，但 **npm Trusted Publisher 授权尚未完成时，OIDC 发布步骤会失败**；单纯合并工作流或创建 Release 不能代替授权。
 

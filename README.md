@@ -9,13 +9,13 @@ Alibaba Open Code Review selects the changed files and resolves the rules — yo
 [![GitHub release](https://img.shields.io/github/v/tag/mocilukalbj/dsh-open-code-review?label=release)](https://github.com/mocilukalbj/dsh-open-code-review/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/mocilukalbj/dsh-open-code-review/test.yml?branch=main&label=CI)](https://github.com/mocilukalbj/dsh-open-code-review/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![DSH](https://img.shields.io/badge/DSH-0.1.7%20%E2%86%92%200.2.1-6f42c1)](#compatibility)
+[![DSH](https://img.shields.io/badge/DSH-0.1.7%20%E2%86%92%200.2.2-6f42c1)](#compatibility)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A522-339933?logo=node.js&logoColor=white)](#requirements)
 
 English · **[简体中文](README.zh.md)**
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 </div>
@@ -49,7 +49,7 @@ the endpoint you configure in OCR.
 - ✅ **Sandboxed by design** — DSH managed subprocess; wider access only through per-call approval; any refusal fails closed.
 - ✅ **Clean lifecycle** — cancellation, timeout, and plugin unload stop and join the owned process range.
 - ✅ **Pinned and offline-safe** — OCR 1.12.10 ships with the plugin; no download or update check at review time.
-- ✅ **Four verified hosts** — DSH 0.1.7-rc.2 through 0.2.1-rc.2, exercised by an integration suite that loads real DSH services.
+- ✅ **Six verified hosts** — DSH 0.1.7-rc.2 through 0.2.2-rc.1, exercised by an integration suite that loads real DSH services.
 
 ## How it works
 
@@ -72,13 +72,13 @@ coverage checklist so nothing is silently skipped.
 **1. Install** into the profile you actually run:
 
 ```sh
-dsh plugin --profile web add dsh-open-code-review@0.1.2 --save-exact --ignore-scripts
+dsh plugin --profile web add dsh-open-code-review@0.1.4 --save-exact --ignore-scripts
 ```
 
 The matching GitHub Release tarball is an alternative:
 
 ```sh
-dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/latest/download/dsh-open-code-review.tgz --ignore-scripts
+dsh plugin --profile web add https://github.com/mocilukalbj/dsh-open-code-review/releases/download/v0.1.4/dsh-open-code-review.tgz --ignore-scripts
 ```
 
 For a local checkout:
@@ -109,7 +109,7 @@ submission details are in [marketplace/README.md](marketplace/README.md).
 
 - **DSH**: one of the verified kernels in the [compatibility table](#compatibility). Other versions require verification.
 - **Node.js 22+**, Git 2.41+, and a local Git workspace.
-- **Standard DSH services**: `tools`, `skills`, `subprocess`, `sandboxPolicy`, `sandbox`. The shipped base/web profiles include them; custom compositions also need the skill consumer (`@deepseek-ai/dsh-tool-skill`) to advertise and invoke the skill.
+- **Standard DSH services**: `tools`, `skills`, `subprocess`, `sandboxPolicy`, `sandbox`. The shipped base/web profiles include them; custom compositions also need the skill consumer (`@deepseek-ai/dsh-tool-skill`) to advertise and invoke the skill. From 0.2.2-rc.1, tool dispatch runs through a composition-mounted executor (`@deepseek-ai/dsh-tool-executor-native`), which `dsh-base` provides by default.
 - **OCR is bundled**: `@alibaba-group/open-code-review@1.12.10` is pinned. Its optional native packages cover Linux, macOS and Windows on x64/arm64. Keep optional dependencies enabled. Upstream ships a `postinstall` script, but this adapter invokes the native binary directly and does not need it — install with `--ignore-scripts`. No package is downloaded or updated during a review.
 
 ## Usage
@@ -151,9 +151,15 @@ Managed mode adds the other two and is off unless `enableManagedReview: true`.
 | `0.2.0-rc.2` | ✅ Verified — cross-platform CI and local integration tests |
 | `0.2.1-rc.1` | ✅ Verified — local Linux integration tests; CI matrix covers macOS/Windows |
 | `0.2.1-rc.2` | ✅ Verified — local Linux integration tests; CI matrix covers macOS/Windows |
+| `0.2.1-rc.5` | ✅ Verified — integration tests in an auxiliary checkout on that kernel; CI covers all three platforms |
+| `0.2.2-rc.1` | ✅ Verified — real Linux integration tests (dispatch through the native executor); CI matrix covers macOS/Windows |
 | anything else | Not claimed. Check `engines.dsh`; DSH may refuse to load the bundle. |
 
-Plugin **0.1.2** added admission for the 0.2.1 kernels. See
+Plugin **0.1.3** (a GitHub Release draft that was never published to npm) added
+admission for 0.2.1-rc.5, and **0.1.4** adds 0.2.2-rc.1,
+the kernel where DSH moved tool dispatch into an executor mounted by the
+composition. The plugin's own API usage is unchanged and `dsh-base` already
+mounts that executor, so the tools stay exactly as exposed before. See
 [UPGRADE.zh.md](UPGRADE.zh.md) for the per-version API notes and
 [VALIDATION.md](VALIDATION.md) for exactly what has run and its limits.
 
@@ -252,9 +258,11 @@ npm pack --ignore-scripts
 
 The integration suite loads the real DSH services and this bundle through Cordis
 Loader, then runs the packaged OCR binary in a temporary Git repository under the
-real DSH sandbox. A missing platform sandbox fails the test instead of silently
-bypassing confinement. No model credentials are needed. Model review quality and
-live API providers are outside these deterministic tests.
+real DSH sandbox. On 0.2.2-rc.1 the suite mounts the composition's tool executor
+and uses its batch result format, with generation detection keeping the same
+tests running on older kernels. A missing platform sandbox fails the test instead
+of silently bypassing confinement. No model credentials are needed. Model review
+quality and live API providers are outside these deterministic tests.
 
 The package ships JavaScript directly, so source installs need no `prepare`
 build. Native OCR comes from Alibaba's optional platform packages; keep them
