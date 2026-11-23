@@ -14,6 +14,8 @@ const profiles = {
   '0.2.1-rc.2': { cordis: '4.0.5', schemastery: '3.18.5', loader: '1.0.6', executor: null },
   '0.2.1-rc.5': { cordis: '4.0.5', schemastery: '3.18.5', loader: '1.0.6', executor: null },
   '0.2.2-rc.1': { cordis: '4.1.0', schemastery: '3.19.0', loader: '1.1.0', executor: '0.2.2-rc.1' },
+  '0.2.2-rc.3': { cordis: '4.1.0', schemastery: '3.19.0', loader: '1.1.0', executor: '0.2.2-rc.3' },
+  '0.2.2-rc.5': { cordis: '4.1.0', schemastery: '3.19.0', loader: '1.1.0', executor: '0.2.2-rc.5' },
 };
 
 assert.ok(Object.hasOwn(profiles, version), 'Select a supported test host.');

@@ -1,6 +1,6 @@
 {
   "name": "dsh-open-code-review",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Alibaba Open Code Review for DeepSeek Harness: native tools and a host-model review skill, with optional OCR-managed reviews.",
   "type": "module",
   "main": "lib/index.js",
@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=22",
-    "dsh": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1"
+    "dsh": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5"
   },
   "keywords": [
     "dsh-plugin",
@@ -46,11 +46,11 @@
   "peerDependencies": {
     "@deepseek-ai/schemastery": "~3.18.4 || ~3.19.0",
     "@deepseek-ai/cordis": "~4.0.4 || ~4.1.0",
-    "@deepseek-ai/dsh-tools": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1",
-    "@deepseek-ai/dsh-skill": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1",
-    "@deepseek-ai/dsh-subprocess": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1",
-    "@deepseek-ai/dsh-sandbox": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1",
-    "@deepseek-ai/dsh-sandbox-policy": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1"
+    "@deepseek-ai/dsh-tools": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5",
+    "@deepseek-ai/dsh-skill": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5",
+    "@deepseek-ai/dsh-subprocess": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5",
+    "@deepseek-ai/dsh-sandbox": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5",
+    "@deepseek-ai/dsh-sandbox-policy": "0.1.7-rc.2 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.5 || 0.2.2-rc.1 || 0.2.2-rc.3 || 0.2.2-rc.5"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/schemastery": {
@@ -79,13 +79,13 @@
     "@deepseek-ai/schemastery": "3.19.0",
     "@deepseek-ai/cordis": "4.1.0",
     "@deepseek-ai/cordis-plugin-loader": "1.1.0",
-    "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-tool-executor-native": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-skill": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-subprocess-local": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-sandbox-local": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-sandbox-policy": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-tool-executor-native": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-skill": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-subprocess-local": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-sandbox-local": "0.2.2-rc.5",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.2-rc.5",
     "js-yaml": "^4.1.0"
   },
   "repository": {

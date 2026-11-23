@@ -1,3 +1,88 @@
+# Validation — 0.1.5
+
+Compatibility update on 2026-11-23 for DeepSeek Harness **0.2.2-rc.3**
+(running local kernel/CLI) and **0.2.2-rc.5** (npm `latest`/`next`), while
+keeping **0.1.7-rc.2**, **0.2.0-rc.2**, **0.2.1-rc.1**, **0.2.1-rc.2**,
+**0.2.1-rc.5** and **0.2.2-rc.1** as explicitly admitted hosts. OCR stays
+pinned at **1.12.10**; `0.2.3-alpha.2` (`alpha` line on Cordis `4.2.0-alpha.1`
+/ Schemastery `3.20.0-alpha.1`) is not claimed. Nothing changed under `lib/`,
+`skills/`, `cordis.patch.yml` or `test/`: the update extends the admitted host
+list, development dependencies, lockfile, CI matrix and documentation.
+
+## Compatibility findings
+
+- Calling `evaluatePluginCompatibility()` from the local `0.2.2-rc.3`
+  `dsh-app-boot` rejects the previous `0.1.4` manifest on both `0.2.2-rc.3` and
+  `0.2.2-rc.5` because `engines.dsh` stopped at `0.2.2-rc.1`.
+- Comparing the published npm tarballs across `0.2.2-rc.2`, `0.2.2-rc.3`,
+  `0.2.2-rc.4` and `0.2.2-rc.5`: non-map `lib/` files are byte-identical across
+  all four releases for `@deepseek-ai/dsh-tools`,
+  `@deepseek-ai/dsh-tool-executor-native`, `@deepseek-ai/dsh-skill`,
+  `@deepseek-ai/dsh-subprocess`, `@deepseek-ai/dsh-subprocess-local`,
+  `@deepseek-ai/dsh-sandbox`, `@deepseek-ai/dsh-sandbox-local` and
+  `@deepseek-ai/dsh-sandbox-policy`. `dsh-app-boot`'s `plugin-compatibility.d.ts`
+  is also unchanged from `0.2.2-rc.1` to `0.2.2-rc.5`.
+- Comparing `0.2.2-rc.1` to `0.2.2-rc.5`: `dsh-skill` and
+  `dsh-tool-executor-native` are byte-identical; `dsh-tools`, `dsh-subprocess`
+  and `dsh-sandbox` add structured `HarnessError` subclasses from
+  `@deepseek-ai/dsh-error` (`ToolContextUnavailableError`, `SubprocessError`,
+  `SandboxEscalationError`, `SandboxPreparationError`); `dsh-sandbox-policy`
+  adds session-scoped `registerWritableRoot()`; `dsh-subprocess-local` replaces
+  the internal `linuxProcessGroupHasLiveMembers` probe option with
+  `linuxProcessGroupLiveMember`; `dsh-base@0.2.2-rc.5` `cordis.patch.yml` still
+  mounts `tools`, `tool-executor-native`, `skill`, `subprocess`, `sandbox`,
+  `sandbox-policy` and `approval`. Cordis stays on `4.1.0`, Schemastery on
+  `3.19.0`, and Cordis Loader on `1.1.0`.
+- `0.1.5` is admitted on all eight declared runtimes (`evaluatePluginCompatibility()`
+  returns `undefined` for `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.1`,
+  `0.2.1-rc.2`, `0.2.1-rc.5`, `0.2.2-rc.1`, `0.2.2-rc.3` and `0.2.2-rc.5`) and
+  rejects `0.2.3-alpha.2` with unmet `engines.dsh`.
+
+## Verification
+
+- Local Linux x86-64, Node v24.21.0, npm 11.19.0, pnpm 12.10.1, Git 2.43.0,
+  local CLI `0.2.2-rc.3`; `LocalSandboxProvider` selected `landlock` with
+  `enforcement: 'full'` inside the test environment.
+- Default host `0.2.2-rc.5` via regenerated `package-lock.json` and
+  `npm ci --ignore-scripts` (all 25 `@deepseek-ai/dsh-*` lockfile/installed
+  packages at `0.2.2-rc.5`, Cordis `4.1.0`, Schemastery `3.19.0`, Loader `1.1.0`,
+  and all 6 cross-platform `@alibaba-group/ocr-*` optional packages preserved):
+  `npm run check` passed (8 verified DSH hosts); all 20 unit tests passed; all 3
+  integration tests passed under `DSH_TEST_VERSION=0.2.2-rc.5`.
+- Scratch checkouts selected via `scripts/select-test-host.js` for
+  **0.2.2-rc.3**, **0.2.2-rc.1** and **0.2.1-rc.5**: each passed
+  `npm run check`, 20/20 unit tests and 3/3 integration tests while asserting
+  their respective `DSH_TEST_VERSION` packages.
+- `npm pack --ignore-scripts`: 10 production files, 23,347 bytes, no build step;
+  two independent packs produced byte-identical archives with SHA-256
+  `218d7b6587f61b71d1367cf8f3c519ae185c81a0087b9d54af6a3489d6c77e78`.
+  `scripts/verify-release.js` reported `ready-to-publish` against `--tag v0.1.5`.
+- Isolated `DSH_HOME` smoke test with the real `0.2.2-rc.3` CLI
+  (`dsh plugin --profile ocr-smoke add <tarball> --save-exact --ignore-scripts`):
+  installed `dsh-open-code-review@0.1.5`, resolved
+  `@alibaba-group/ocr-linux-x64/bin/opencodereview` inside the profile, duplicated
+  no `@deepseek-ai/*` host service into the profile, and `--dump-config` composed
+  the `open-code-review` bundle row. `dsh plugin --profile ocr-smoke remove dsh-open-code-review`
+  removed both the dependency and bundle row, and `--dump-config` then contained
+  no `open-code-review` reference.
+
+## Limits
+
+- **0.1.7-rc.2**, **0.2.0-rc.2**, **0.2.1-rc.1** and **0.2.1-rc.2** were not
+  re-run locally in this cycle; the eight-kernel × Linux/macOS/Windows CI matrix
+  covers them and has not yet run on GitHub at the time of writing.
+- Local integration runs used Node 24 and Landlock full enforcement; `bwrap`,
+  macOS Seatbelt and Windows ACL confinement are CI-only in this cycle (CI runs
+  on Node 22).
+- Tools were exercised through the native executor only; PTC (`run_code`) tool
+  presentation was not exercised.
+- No live LLM request or OCR-managed model endpoint was exercised, and
+  `0.2.3-alpha.*` is outside the supported range.
+- The local user's real DSH profile (`web`) was not mutated, and nothing was
+  pushed to GitHub or published to npm.
+
+---
+
 # Validation — 0.1.4
 
 Compatibility update on 2026-11-11 for DeepSeek Harness **0.2.2-rc.1** — npm
