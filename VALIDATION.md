@@ -173,7 +173,10 @@ the version ranges, the development host line, the integration harness and CI.
   [npm/cli#9969](https://github.com/npm/cli/issues/9969) for repositories created
   after 2026-07-15, so the publish job cannot complete the token exchange; this
   release publishes the same verified archive manually and re-checks
-  `dist.integrity`.
+  `dist.integrity`. The workflow `publish` job now authenticates with the
+  repository secret `NPM_TOKEN` (a granular access token that enables
+  *Bypass 2FA*) instead of OIDC; npm removes bypass-2FA publication in early
+  2027, so the credential path must be revisited before then.
 
 ---
 

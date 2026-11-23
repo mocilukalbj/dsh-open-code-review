@@ -231,22 +231,21 @@ CI 必须覆盖目标平台。沙箱不可用应明确报错，不能为让测�
 
 仓库的 [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml) 在 GitHub Release **published** 时运行；普通 push 只运行 CI，不发布 npm。先更新插件版本、锁文件、兼容说明及验证报告，创建同版本 `v<版本>` tag。准备 Release 时上传同一份经验证的 **`dsh-open-code-review.tgz`** 和 **`SHA256SUMS`**，确认资产已齐全后再发布 Release；不要复用已发布的版本号。源码包可由 GitHub Release 一并提供。
 
-工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` / `0.2.1-rc.5` / `0.2.2-rc.1` / `0.2.2-rc.3` / `0.2.2-rc.5` 八个内核分别在 Linux、macOS、Windows 运行检查与测试。通过后才用 npm OIDC 发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
+工作流检查 Release/tag/包版本及预发布标记、SHA-256、tag 源码重新打包后的内容和 npm 既有版本，然后对 DSH `0.1.7-rc.2` / `0.2.0-rc.2` / `0.2.1-rc.1` / `0.2.1-rc.2` / `0.2.1-rc.5` / `0.2.2-rc.1` / `0.2.2-rc.3` / `0.2.2-rc.5` 八个内核分别在 Linux、macOS、Windows 运行检查与测试。通过后用仓库 secret `NPM_TOKEN`（granular access token，含 Bypass 2FA）发布**该 Release 的原始 tgz**，稳定版标记为 `latest`、预发布版标记为 `next`，并核对 npm `dist.integrity`。若同版本在 npm 已存在且包字节相同，跳过发布；字节不同则失败，必须使用新版本号，不能覆盖。发布后再实际下载核对两个渠道和安装入口。不要覆盖历史 Release 的 tarball 来偷偷升级 OCR。
 
-**当前 OIDC 不可用**：本仓库创建于 2026-07-15 之后，GitHub 签发的 subject 带 immutable 标签，npm registry 无法匹配，令牌交换返回 404（[npm/cli#9969](https://github.com/npm/cli/issues/9969)）。因此 `publish` 作业会失败，发布要走人工通道：确认 `verify` 与 `test` 两个作业在八个内核上全绿、Release 资产与 `verify-release.js` 结论一致后，由具备该包写权限并已 `npm login`（含 2FA）的环境对**同一个 tgz** 执行 `npm publish ./dsh-open-code-review.tgz --ignore-scripts --access public --tag latest`，再核对 npm `dist.integrity` 与 Release 资产字节一致。上游修复后仍应回到自动通道，不要长期依赖手工发布。
+**为什么不用 OIDC**：本仓库创建于 2026-07-15 之后，GitHub 签发的 subject 带 immutable 标签，npm registry 无法匹配，令牌交换返回 404（[npm/cli#9969](https://github.com/npm/cli/issues/9969)）。因此 `publish` 作业改用仓库 secret `NPM_TOKEN`；该 secret 缺失时任务会以明确错误失败，不会静默跳过。人工兜底通道仍然有效：确认 `verify` 与 `test` 两个作业在八个内核上全绿、Release 资产与 `verify-release.js` 结论一致后，由具备该包写权限并已 `npm login`（含 2FA）的环境对**同一个 tgz** 执行 `npm publish ./dsh-open-code-review.tgz --ignore-scripts --access public --tag latest`，再核对 npm `dist.integrity` 与 Release 资产字节一致。npm 在 2027 年初移除 bypass-2FA 发布能力，届时必须重新评估；上游 OIDC 修复后应改回 OIDC，不要长期依赖 token。
 
-手动运行 `workflow_dispatch` 时填写一个**已发布**的 Release tag；`publish` 默认 `false`，仅验证。需要同步发布时明确选择 `publish: true`，仍须通过相同的校验与测试。Release 事件本身会尝试发布。工作流已加入仓库，但 **npm Trusted Publisher 授权尚未完成时，OIDC 发布步骤会失败**；单纯合并工作流或创建 Release 不能代替授权。
+手动运行 `workflow_dispatch` 时填写一个**已发布**的 Release tag；`publish` 默认 `false`，仅验证。需要同步发布时明确选择 `publish: true`，仍须通过相同的校验与测试。Release 事件本身会尝试发布。工作流已加入仓库，但 **`NPM_TOKEN` 未配置时发布步骤会失败**；单纯合并工作流或创建 Release 不能代替凭据配置。
 
 通过 GitHub 网页或维护者的 `gh` 登录发布 Release 会触发此流程。若另一条 Actions 工作流使用默认 `GITHUB_TOKEN` 创建 Release，GitHub 通常不会继续触发新的 Release 工作流；这种情况需显式调用本流程的 `workflow_dispatch`，并设置 `publish: true`。
 
-包所有者需在 [npm 包设置的 Trusted publishing](https://docs.npmjs.com/trusted-publishers/) 添加 GitHub Actions 发布者：仓库所有者 `mocilukalbj`、仓库 `dsh-open-code-review`、工作流文件名 `publish-npm.yml`（仅文件名，不填路径）、Environment 留空，并**明确允许直接 `npm publish`**。也可在具备该包写权限、已完成 npm 登录及 2FA 的环境使用 npm CLI **11.15.0 或更高**：
+包所有者需提供发布凭据：在 [npm 访问令牌页](https://www.npmjs.com/settings/mociataraxia/tokens) 生成 **Granular Access Token**，名称如 `dsh-open-code-review-ci`，Packages and scopes 选择 `dsh-open-code-review` 的 **Read and write**，勾选 **Bypass 2FA**（自动发布必需），并设置到期时间（建议不超过一年，到期前轮换）；然后写入仓库 secret：
 
 ```sh
-npm trust github dsh-open-code-review --repo mocilukalbj/dsh-open-code-review --file publish-npm.yml --allow-publish
-npm trust list dsh-open-code-review
+printf '%s' '<token>' | gh secret set NPM_TOKEN --repo mocilukalbj/dsh-open-code-review
 ```
 
-详见 [npm trust 命令文档](https://docs.npmjs.com/cli/v11/commands/npm-trust/)。工作流使用 GitHub OIDC，不需要 `NPM_TOKEN`。授权完成后等待一次工作流验证结果，再以 npm 包名安装新版本核对实际 DSH 能力。
+轮换 token 时重新生成并覆盖 secret 即可，不需要改动工作流。OIDC / Trusted Publishing 目前因 [npm/cli#9969](https://github.com/npm/cli/issues/9969) 不可用，**不要**按 Trusted Publisher 配置；上游修复后应改回 OIDC。凭据配置完成后等待一次工作流验证结果，再以 npm 包名安装新版本核对实际 DSH 能力。
 
 市场条目的稳定地址是 `releases/latest/download/dsh-open-code-review.tgz`。保持固定资产名，避免下一次发版后下载 404。URL、仓库、分类或功能描述发生变化时，向 [awesome-dsh-plugin 目录](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) 更新本插件对应的一份 YAML；不手改其生成的 README。dsh-market 是展示/管理入口，目录合并与插件发布是不同步骤。核对市场实际刷新和安装结果；不会因为创建了 Release 或 npm 版本就保证所有本机安装已自动更新。此前按 Release URL 安装的 profile 若需立即转为 npm 来源，按第 3 节执行一次同版本按包名安装。
 
